@@ -1,0 +1,91 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
+
+	_ "github.com/modiva/fintech-core-api/services/transaction/docs"
+	grpcclient "github.com/modiva/fintech-core-api/services/transaction/internal/authclient"
+	"github.com/modiva/fintech-core-api/services/transaction/internal/config"
+	httpdelivery "github.com/modiva/fintech-core-api/services/transaction/internal/delivery/http"
+	"github.com/modiva/fintech-core-api/services/transaction/internal/repository"
+	"github.com/modiva/fintech-core-api/services/transaction/internal/usecase"
+	"github.com/modiva/fintech-core-api/pkg/logging"
+)
+
+// @title FinTech Transaction Service API
+// @version 1.0
+// @description Account, transaction, and reporting APIs for FinTech Core.
+// @BasePath /v1
+func main() {
+	cfg := config.Load()
+
+	logger, err := logging.New(cfg.Environment)
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
+	poolConfig, err := pgxpool.ParseConfig(cfg.PostgresDSN)
+	if err != nil {
+		logger.Fatal("parse postgres dsn", zap.Error(err))
+	}
+	poolConfig.MaxConns = 20
+	db, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
+	if err != nil {
+		logger.Fatal("open postgres", zap.Error(err))
+	}
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := db.Ping(ctx); err != nil {
+		logger.Fatal("ping postgres", zap.Error(err))
+	}
+
+	authClient, err := grpcclient.New(cfg.AuthGRPCTarget)
+	if err != nil {
+		logger.Fatal("create auth grpc client", zap.Error(err))
+	}
+	defer authClient.Close()
+
+	transactionRepo := repository.NewPostgresRepository(db)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
+	router := httpdelivery.NewRouter(httpdelivery.RouterConfig{
+		Usecase:       transactionUsecase,
+		AuthClient:    authClient,
+		Logger:        logger,
+		AllowedOrigin: cfg.AllowedOrigin,
+	})
+
+	server := &http.Server{
+		Addr:              cfg.HTTPAddr,
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	go func() {
+		logger.Info("transaction http listening", zap.String("addr", cfg.HTTPAddr))
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal("serve transaction http", zap.Error(err))
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer shutdownCancel()
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		logger.Error("shutdown transaction http", zap.Error(err))
+	}
+}

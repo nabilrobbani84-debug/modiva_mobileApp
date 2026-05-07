@@ -1,0 +1,17 @@
+{
+  "name": "modiva-gateway-hono",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "start:gateway": "node server.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.1",
+    "dotenv": "^16.4.7",
+    "hono": "^4.8.2",
+    "mime-types": "^2.1.35"
+  }
+}

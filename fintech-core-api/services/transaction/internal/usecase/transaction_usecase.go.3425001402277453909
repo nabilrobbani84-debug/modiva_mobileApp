@@ -1,0 +1,154 @@
+package usecase
+
+import (
+	"context"
+	"strings"
+
+	"github.com/google/uuid"
+
+	"github.com/modiva/fintech-core-api/services/transaction/internal/domain"
+)
+
+type Repository interface {
+	CreateAccount(ctx context.Context, userID, currency string) (domain.Account, error)
+	GetAccount(ctx context.Context, id string) (domain.Account, error)
+	ListAccounts(ctx context.Context, principal domain.Principal) ([]domain.Account, error)
+	Deposit(ctx context.Context, input MutationInput) (domain.Transaction, error)
+	Withdraw(ctx context.Context, input MutationInput) (domain.Transaction, error)
+	Transfer(ctx context.Context, input TransferInput) (domain.Transaction, error)
+	ListTransactions(ctx context.Context, principal domain.Principal, limit int) ([]domain.Transaction, error)
+	MonthlyBalances(ctx context.Context, principal domain.Principal, accountID string, months int) ([]domain.MonthlyBalance, error)
+}
+
+type TransactionUsecase struct {
+	repo Repository
+}
+
+type CreateAccountInput struct {
+	UserID   string
+	Currency string
+}
+
+type MutationInput struct {
+	Principal      domain.Principal
+	AccountID      string
+	AmountCents    int64
+	Reference      string
+	IdempotencyKey string
+}
+
+type TransferInput struct {
+	Principal       domain.Principal
+	FromAccountID   string
+	ToAccountID     string
+	AmountCents     int64
+	Reference       string
+	IdempotencyKey  string
+}
+
+func NewTransactionUsecase(repo Repository) *TransactionUsecase {
+	return &TransactionUsecase{repo: repo}
+}
+
+func (uc *TransactionUsecase) CreateAccount(ctx context.Context, principal domain.Principal, input CreateAccountInput) (domain.Account, error) {
+	currency := normalizeCurrency(input.Currency)
+	if currency == "" {
+		return domain.Account{}, domain.ErrValidation
+	}
+	userID := principal.UserID
+	if principal.IsAdmin() && strings.TrimSpace(input.UserID) != "" {
+		userID = strings.TrimSpace(input.UserID)
+	}
+	return uc.repo.CreateAccount(ctx, userID, currency)
+}
+
+func (uc *TransactionUsecase) GetAccount(ctx context.Context, principal domain.Principal, id string) (domain.Account, error) {
+	if _, err := uuid.Parse(id); err != nil {
+		return domain.Account{}, domain.ErrValidation
+	}
+	account, err := uc.repo.GetAccount(ctx, id)
+	if err != nil {
+		return domain.Account{}, err
+	}
+	if !principal.IsAdmin() && account.UserID != principal.UserID {
+		return domain.Account{}, domain.ErrForbidden
+	}
+	return account, nil
+}
+
+func (uc *TransactionUsecase) ListAccounts(ctx context.Context, principal domain.Principal) ([]domain.Account, error) {
+	return uc.repo.ListAccounts(ctx, principal)
+}
+
+func (uc *TransactionUsecase) Deposit(ctx context.Context, input MutationInput) (domain.Transaction, error) {
+	if !input.Principal.IsAdmin() {
+		return domain.Transaction{}, domain.ErrForbidden
+	}
+	if err := validateMutation(input.AccountID, input.AmountCents); err != nil {
+		return domain.Transaction{}, err
+	}
+	return uc.repo.Deposit(ctx, input)
+}
+
+func (uc *TransactionUsecase) Withdraw(ctx context.Context, input MutationInput) (domain.Transaction, error) {
+	if err := validateMutation(input.AccountID, input.AmountCents); err != nil {
+		return domain.Transaction{}, err
+	}
+	return uc.repo.Withdraw(ctx, input)
+}
+
+func (uc *TransactionUsecase) Transfer(ctx context.Context, input TransferInput) (domain.Transaction, error) {
+	if input.FromAccountID == input.ToAccountID {
+		return domain.Transaction{}, domain.ErrValidation
+	}
+	if _, err := uuid.Parse(input.FromAccountID); err != nil {
+		return domain.Transaction{}, domain.ErrValidation
+	}
+	if _, err := uuid.Parse(input.ToAccountID); err != nil {
+		return domain.Transaction{}, domain.ErrValidation
+	}
+	if input.AmountCents <= 0 {
+		return domain.Transaction{}, domain.ErrValidation
+	}
+	return uc.repo.Transfer(ctx, input)
+}
+
+func (uc *TransactionUsecase) ListTransactions(ctx context.Context, principal domain.Principal, limit int) ([]domain.Transaction, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	return uc.repo.ListTransactions(ctx, principal, limit)
+}
+
+func (uc *TransactionUsecase) MonthlyBalances(ctx context.Context, principal domain.Principal, accountID string, months int) ([]domain.MonthlyBalance, error) {
+	if _, err := uuid.Parse(accountID); err != nil {
+		return nil, domain.ErrValidation
+	}
+	if months <= 0 || months > 24 {
+		months = 12
+	}
+	return uc.repo.MonthlyBalances(ctx, principal, accountID, months)
+}
+
+func validateMutation(accountID string, amountCents int64) error {
+	if _, err := uuid.Parse(accountID); err != nil {
+		return domain.ErrValidation
+	}
+	if amountCents <= 0 {
+		return domain.ErrValidation
+	}
+	return nil
+}
+
+func normalizeCurrency(currency string) string {
+	currency = strings.ToUpper(strings.TrimSpace(currency))
+	if len(currency) != 3 {
+		return ""
+	}
+	for _, r := range currency {
+		if r < 'A' || r > 'Z' {
+			return ""
+		}
+	}
+	return currency
+}

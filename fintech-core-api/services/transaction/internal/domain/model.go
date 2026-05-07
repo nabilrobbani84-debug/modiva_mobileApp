@@ -1,0 +1,49 @@
+package domain
+
+import "time"
+
+type Role string
+
+const (
+	RoleCustomer Role = "customer"
+	RoleAdmin    Role = "admin"
+)
+
+type Principal struct {
+	UserID string
+	Email  string
+	Role   Role
+}
+
+func (p Principal) IsAdmin() bool {
+	return p.Role == RoleAdmin
+}
+
+type Account struct {
+	ID           string    `json:"id"`
+	UserID       string    `json:"user_id"`
+	Currency     string    `json:"currency"`
+	BalanceCents int64     `json:"balance_cents"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type Transaction struct {
+	ID             string    `json:"id"`
+	Type           string    `json:"type"`
+	FromAccountID  *string   `json:"from_account_id,omitempty"`
+	ToAccountID    *string   `json:"to_account_id,omitempty"`
+	AmountCents    int64     `json:"amount_cents"`
+	Currency       string    `json:"currency"`
+	Status         string    `json:"status"`
+	Reference      string    `json:"reference"`
+	IdempotencyKey *string   `json:"idempotency_key,omitempty"`
+	CreatedBy      string    `json:"created_by"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type MonthlyBalance struct {
+	Month        string `json:"month"`
+	BalanceCents int64  `json:"balance_cents"`
+}
