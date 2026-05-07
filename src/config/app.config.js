@@ -55,7 +55,9 @@ const environments = {
   production: {
     label: 'Production',
     badgeColor: 'transparent',
-    apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || 'https://api.modiva.app/api',
+    // Fallback sementara untuk build testing di device fisik sebelum backend publik aktif.
+    // Jika backend sudah dideploy, override dengan EXPO_PUBLIC_API_URL saat build.
+    apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || 'http://192.168.100.104:8000/api',
     useMockApi: false,
     debug: false,
     logLevel: 'error'

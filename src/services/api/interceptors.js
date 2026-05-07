@@ -4,7 +4,7 @@
  * Request/Response interceptors for API service
  * @module services/api/interceptors
  */
-import { ApiErrorMessages, HttpStatus } from '../../config/api.config.js';
+import { API_BASE_URL, ApiErrorMessages, HttpStatus } from '../../config/api.config.js';
 import { Logger } from '../../utils/logger.js';
 
 import { clearUserSession, getAuthToken, saveAuthToken } from '../../utils/helpers/storageHelpers.js';
@@ -15,6 +15,10 @@ const StorageService = {
   getRefreshToken: async () => null, // Placeholder if you implement refresh tokens
   setToken: async (token) => await saveAuthToken(token),
   clearTokens: async () => await clearUserSession()
+};
+
+const isBackendReachabilityIssue = () => {
+  return /\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+|api\.modiva\.app)/i.test(API_BASE_URL || '');
 };
 
 /**
@@ -114,7 +118,9 @@ export const ErrorInterceptors = {
       error.message === 'Network Error' ||
       error.name === 'TypeError'
     ) {
-      error.message = ApiErrorMessages.NETWORK_ERROR;
+      error.message = isBackendReachabilityIssue()
+        ? 'Server backend tidak dapat dijangkau. Pastikan backend aktif dan URL API benar.'
+        : ApiErrorMessages.NETWORK_ERROR;
       error.code = 'NETWORK_ERROR';
     }
     

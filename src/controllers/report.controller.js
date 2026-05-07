@@ -259,9 +259,13 @@ export const ReportController = {
                 date: reportData.date
             });
 
+            const friendlyMessage = error?.code === 'NETWORK_ERROR' || error?.code === 'TIMEOUT_ERROR'
+                ? 'Server laporan tidak dapat dijangkau. Pastikan backend aktif dan HP terhubung ke jaringan server.'
+                : error.message || 'Gagal mengirim laporan. Data belum tersimpan ke database.';
+
             store.dispatch(ActionTypes.UI_SHOW_TOAST, {
                 type: 'error',
-                message: error.message || 'Gagal mengirim laporan. Data belum tersimpan ke database.'
+                message: friendlyMessage
             });
 
             throw error;

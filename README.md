@@ -44,7 +44,7 @@ To learn more about developing your project with Expo, look at the following res
 
 ## Backend aplikasi
 
-Repo ini sekarang juga punya backend FastAPI sederhana di [backend/README.md](C:\project\mobile-app-modiva\mobile_tester\backend\README.md) untuk login, profile, upload avatar, notifikasi, sekolah, dan upload bukti vitamin.
+Repo ini sekarang juga punya backend FastAPI di [backend/README.md](C:\project\mobile-app-modiva\mobile_tester\backend\README.md) untuk login, profile, upload avatar, notifikasi, sekolah, dan upload bukti vitamin dengan penyimpanan file JSON lokal.
 
 Jalankan backend:
 
@@ -52,6 +52,14 @@ Jalankan backend:
 cd backend
 python -m pip install -r requirements.txt
 python main.py
+```
+
+Kalau ingin gateway HonoJS pendamping:
+
+```bash
+cd backend
+npm install
+npm run start:gateway
 ```
 
 Endpoint utama:
@@ -72,8 +80,10 @@ Backend sekarang sudah disiapkan untuk deploy ke server publik dengan:
 - [backend/Dockerfile](C:\project\mobile-app-modiva\mobile_tester\backend\Dockerfile)
 - [backend/Procfile](C:\project\mobile-app-modiva\mobile_tester\backend\Procfile)
 - [backend/.env.example](C:\project\mobile-app-modiva\mobile_tester\backend\.env.example)
+- [backend/server.js](C:\project\mobile-app-modiva\mobile_tester\backend\server.js)
+- [backend/package.json](C:\project\mobile-app-modiva\mobile_tester\backend\package.json)
 
-Untuk build app ke server publik, set `EXPO_PUBLIC_API_URL` ke domain backend kamu sebelum build APK/IPA.
+Untuk build app ke server publik, set `EXPO_PUBLIC_API_URL` ke domain backend kamu sebelum build APK/IPA. Untuk penyimpanan lokal, backend FastAPI membaca `DATABASE_PATH` dan default ke `backend/data/modiva-fastapi.json`.
 
 ## Join the community
 
