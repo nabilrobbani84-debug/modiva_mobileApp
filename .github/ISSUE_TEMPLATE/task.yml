@@ -1,0 +1,39 @@
+name: Sprint Task
+description: Pecah user story menjadi task sprint yang bisa dieksekusi
+title: "[Task] "
+labels:
+  - sprint-task
+body:
+  - type: input
+    id: story_ref
+    attributes:
+      label: Related User Story
+      placeholder: PB-001 atau #123
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: Task Description
+      placeholder: Jelaskan task teknis yang akan dikerjakan.
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Initial Status
+      options:
+        - Todo
+        - In Progress
+        - Review
+        - Done
+    validations:
+      required: true
+  - type: textarea
+    id: done_criteria
+    attributes:
+      label: Done Criteria
+      placeholder: |
+        - [ ] code selesai
+        - [ ] test dijalankan
+        - [ ] dokumentasi diperbarui

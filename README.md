@@ -44,7 +44,7 @@ To learn more about developing your project with Expo, look at the following res
 
 ## Backend aplikasi
 
-Repo ini sekarang juga punya backend FastAPI di [backend/README.md](C:\project\mobile-app-modiva\mobile_tester\backend\README.md) untuk login, profile, upload avatar, notifikasi, sekolah, dan upload bukti vitamin dengan penyimpanan file JSON lokal.
+Repo ini sekarang juga punya backend FastAPI di [backend/README.md](C:\project\mobile-app-modiva\mobile_tester\backend\README.md) untuk login, profile, upload avatar, notifikasi, sekolah, dan upload bukti vitamin dengan penyimpanan **MySQL**.
 
 Jalankan backend:
 
@@ -83,7 +83,55 @@ Backend sekarang sudah disiapkan untuk deploy ke server publik dengan:
 - [backend/server.js](C:\project\mobile-app-modiva\mobile_tester\backend\server.js)
 - [backend/package.json](C:\project\mobile-app-modiva\mobile_tester\backend\package.json)
 
-Untuk build app ke server publik, set `EXPO_PUBLIC_API_URL` ke domain backend kamu sebelum build APK/IPA. Untuk penyimpanan lokal, backend FastAPI membaca `DATABASE_PATH` dan default ke `backend/data/modiva-fastapi.json`.
+Untuk build app ke server publik:
+
+1. Deploy FastAPI ke domain HTTPS publik.
+2. Siapkan MySQL produksi dan isi env `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
+3. Isi `PUBLIC_BASE_URL` dan `CORS_ALLOW_ORIGINS` di backend.
+4. Set `EXPO_PUBLIC_API_URL` ke domain backend publik sebelum build APK/IPA.
+5. Jalankan validasi:
+
+```bash
+npm run validate:production-env
+```
+
+Catatan penting:
+
+- build `production` sekarang tidak boleh mengandalkan IP laptop atau `localhost`
+- fallback offline/mock untuk login dan data laporan dinonaktifkan pada mode produksi nyata
+- jika `EXPO_PUBLIC_API_URL` belum valid, build tetap bisa jalan tetapi akan ditandai belum siap produksi di aplikasi
+- Android production sekarang dipaksa HTTPS-only (`usesCleartextTraffic: false`)
+- paket deploy VPS siap dipakai di [backend/deploy/VPS_DEPLOY.md](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\VPS_DEPLOY.md)
+
+## Scrum workflow
+
+Repo ini sekarang memakai struktur kerja Scrum agar pengerjaan fitur lebih tertata.
+
+- panduan utama Scrum:
+  [SCRUM.md](C:\project\mobile-app-modiva\mobile_tester\SCRUM.md)
+- product backlog:
+  [docs/scrum/product-backlog.md](C:\project\mobile-app-modiva\mobile_tester\docs\scrum\product-backlog.md)
+- sprint backlog template:
+  [docs/scrum/sprint-backlog-template.md](C:\project\mobile-app-modiva\mobile_tester\docs\scrum\sprint-backlog-template.md)
+- sprint aktif:
+  [docs/scrum/sprints/sprint-01.md](C:\project\mobile-app-modiva\mobile_tester\docs\scrum\sprints\sprint-01.md)
+- checklist go-live:
+  [docs/go-live-checklist.md](C:\project\mobile-app-modiva\mobile_tester\docs\go-live-checklist.md)
+
+GitHub juga sudah disiapkan dengan template:
+
+- `User Story`
+- `Sprint Task`
+- `Bug Report`
+- `Pull Request Template`
+
+Alur yang disarankan:
+
+1. Buat `User Story` dari backlog.
+2. Masukkan story terpilih ke sprint backlog.
+3. Pecah menjadi `Sprint Task`.
+4. Kerjakan task lewat pull request.
+5. Tutup sprint dengan review dan retrospective.
 
 ## Join the community
 

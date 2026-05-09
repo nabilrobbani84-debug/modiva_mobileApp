@@ -8,6 +8,8 @@ import Constants from 'expo-constants';
 
 const expoExtra = Constants.expoConfig?.extra || Constants.manifest2?.extra || {};
 
+const PRIVATE_API_HOST_PATTERN = /\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+)/i;
+
 const getConfigValue = (...keys) => {
   for (const key of keys) {
     const value = process.env[key] ?? expoExtra[key];
@@ -29,6 +31,19 @@ const toBoolean = (value, fallback = false) => {
 
   return fallback;
 };
+
+const isPrivateApiUrl = (value) => {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+
+  return PRIVATE_API_HOST_PATTERN.test(value.trim());
+};
+
+const allowDemoModeInProduction = toBoolean(
+  getConfigValue('EXPO_PUBLIC_ALLOW_DEMO_MODE', 'REACT_APP_ALLOW_DEMO_MODE'),
+  false
+);
 
 // Environment configurations
 const environments = {
@@ -55,9 +70,10 @@ const environments = {
   production: {
     label: 'Production',
     badgeColor: 'transparent',
-    // Fallback sementara untuk build testing di device fisik sebelum backend publik aktif.
-    // Jika backend sudah dideploy, override dengan EXPO_PUBLIC_API_URL saat build.
-    apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || 'http://192.168.100.104:8000/api',
+    // Build production wajib diarahkan ke backend publik lewat EXPO_PUBLIC_API_URL.
+    // Jika belum ada backend publik, aplikasi akan otomatis fallback ke mock mode
+    // agar APK tidak rusak total saat dibuka user.
+    apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || '',
     useMockApi: false,
     debug: false,
     logLevel: 'error'
@@ -82,11 +98,26 @@ const getCurrentEnvironment = () => {
 
 const currentEnv = getCurrentEnvironment();
 const resolvedEnvironment = environments[currentEnv];
+const isProductionApiMisconfigured =
+  currentEnv === 'production' &&
+  (!resolvedEnvironment.apiUrl || isPrivateApiUrl(resolvedEnvironment.apiUrl));
+const shouldForceMockForUnsafeProduction =
+  isProductionApiMisconfigured && allowDemoModeInProduction;
 
 const environmentConfig = {
   ...resolvedEnvironment,
-  useMockApi: resolvedEnvironment.useMockApi
+  useMockApi: resolvedEnvironment.useMockApi || shouldForceMockForUnsafeProduction
 };
+
+if (shouldForceMockForUnsafeProduction) {
+  console.warn(
+    '[Modiva] Production API URL belum aman/publik. Aplikasi dialihkan ke mock mode agar APK tetap bisa dipakai untuk demo/internal testing.'
+  );
+} else if (isProductionApiMisconfigured) {
+  console.error(
+    '[Modiva] Build production belum siap untuk user umum karena EXPO_PUBLIC_API_URL belum diarahkan ke backend publik yang valid.'
+  );
+}
 
 // Main application configuration
 export const AppConfig = {
@@ -149,6 +180,11 @@ export const AppConfig = {
     logApiCalls: process.env.REACT_APP_VERBOSE_LOGS === 'true',
     logReduxActions: process.env.REACT_APP_VERBOSE_LOGS === 'true',
     enableReactQueryDevtools: currentEnv === 'development'
+  },
+
+  release: {
+    allowDemoModeInProduction,
+    isProductionApiMisconfigured
   }
 };
 
@@ -159,6 +195,7 @@ Object.freeze(AppConfig.app);
 Object.freeze(AppConfig.features);
 Object.freeze(AppConfig.performance);
 Object.freeze(AppConfig.security);
+Object.freeze(AppConfig.release);
 
 // Helper function to check if running in development
 export const isDevelopment = () => currentEnv === 'development';
@@ -171,5 +208,7 @@ export const getApiUrl = () => AppConfig.environment.apiUrl;
 
 // Helper function to check if mock API is enabled
 export const isMockApiEnabled = () => AppConfig.environment.useMockApi;
+
+export const isProductionApiReady = () => !AppConfig.release.isProductionApiMisconfigured;
 
 export default AppConfig;

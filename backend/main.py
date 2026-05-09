@@ -24,12 +24,19 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 PORT = int(os.environ.get("PORT", "8000"))
 UVICORN_RELOAD = str(os.environ.get("UVICORN_RELOAD", "false")).strip().lower() == "true"
+APP_ENV = str(os.environ.get("APP_ENV", "development")).strip().lower()
+PUBLIC_BASE_URL = str(os.environ.get("PUBLIC_BASE_URL", "")).strip()
 
 MYSQL_HOST = os.environ.get("MYSQL_HOST", "127.0.0.1")
 MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3306"))
 MYSQL_USER = os.environ.get("MYSQL_USER", "root")
 MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
 MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "modiva")
+CORS_ALLOW_ORIGINS = [
+    origin.strip()
+    for origin in str(os.environ.get("CORS_ALLOW_ORIGINS", "*")).split(",")
+    if origin.strip()
+]
 
 
 SEED_SCHOOLS = [
@@ -246,6 +253,23 @@ def mysql_connect(*, database: Optional[str] = None) -> pymysql.connections.Conn
     if database:
         connection_kwargs["database"] = database
     return pymysql.connect(**connection_kwargs)
+
+
+def check_database_connection() -> dict[str, Any]:
+    with db_cursor() as (_, cursor):
+        cursor.execute("SELECT 1 AS ok")
+        result = cursor.fetchone() or {}
+    return {"ok": bool(result.get("ok"))}
+
+
+def validate_runtime_config() -> None:
+    if APP_ENV == "production":
+        if not PUBLIC_BASE_URL.startswith("https://"):
+            raise RuntimeError("PUBLIC_BASE_URL wajib memakai HTTPS saat APP_ENV=production")
+        if "*" in CORS_ALLOW_ORIGINS:
+            raise RuntimeError("CORS_ALLOW_ORIGINS tidak boleh '*' saat APP_ENV=production")
+        if not MYSQL_PASSWORD:
+            raise RuntimeError("MYSQL_PASSWORD wajib diisi saat APP_ENV=production")
 
 
 @contextmanager
@@ -755,7 +779,7 @@ async def remove_uploaded_file_if_unused(filename: Optional[str]) -> bool:
 app = FastAPI(title="Modiva Backend", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOW_ORIGINS or ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -764,19 +788,25 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup() -> None:
+    validate_runtime_config()
     init_database()
+    check_database_connection()
 
 
 @app.get("/health")
 def healthcheck() -> dict[str, Any]:
+    database_status = check_database_connection()
     return {
         "success": True,
         "message": "Backend aktif",
+        "environment": APP_ENV,
+        "public_base_url": PUBLIC_BASE_URL or None,
         "database": {
             "driver": "mysql",
             "host": MYSQL_HOST,
             "port": MYSQL_PORT,
             "name": MYSQL_DATABASE,
+            "status": "connected" if database_status["ok"] else "error",
         },
     }
 

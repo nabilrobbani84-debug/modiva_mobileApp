@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react';
+import { AppConfig } from '../config/app.config';
 import { UserModel } from '../models/User.model';
 import { AuthAPI, createOfflineStudentSession } from '../services/api/auth.api';
 import { UserAPI } from '../services/api/user.api';
@@ -73,6 +74,8 @@ const authReducer = (state, action) => {
 };
 
 const AuthContext = createContext(null);
+const canUseOfflineLoginFallback =
+  AppConfig.currentEnv !== 'production' || AppConfig.environment.useMockApi;
 
 const isNetworkFailure = (message = '') => {
   const normalizedMessage = String(message).trim().toLowerCase();
@@ -149,7 +152,7 @@ export const AuthProvider = ({ children }) => {
         response = await AuthAPI.loginSiswa(credentials);
       } catch (error) {
         const errorMessage = error?.userMessage || error?.message || '';
-        if (!isNetworkFailure(errorMessage)) {
+        if (!isNetworkFailure(errorMessage) || !canUseOfflineLoginFallback) {
           throw error;
         }
 
@@ -197,8 +200,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.warn("Login Error:", error);
       const rawMessage = error.userMessage || error.message || 'Terjadi kesalahan jaringan';
-      const errorMessage = isNetworkFailure(rawMessage)
+      const errorMessage = isNetworkFailure(rawMessage) && canUseOfflineLoginFallback
         ? 'Koneksi ke server gagal. Gunakan NIS yang terdaftar atau kode sekolah yang sesuai untuk masuk offline.'
+        : isNetworkFailure(rawMessage)
+          ? 'Koneksi ke server produksi gagal. Silakan coba lagi saat server tersedia.'
         : rawMessage;
       dispatch({ 
         type: AUTH_ACTIONS.LOGIN_FAILURE, 

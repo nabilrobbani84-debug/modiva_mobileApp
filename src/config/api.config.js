@@ -35,7 +35,7 @@ try {
   // Provide fallback values
   const fallbackConfig = {
     environment: {
-      apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+      apiUrl: process.env.REACT_APP_API_URL || '',
       useMockApi: process.env.NODE_ENV === 'development'
     },
     performance: {
@@ -63,7 +63,7 @@ try {
 const getApiBaseUrl = () => {
   return AppConfig?.environment?.apiUrl || 
          process.env.REACT_APP_API_URL || 
-         'http://localhost:3000/api';
+         '';
 };
 
 const getUseMockApi = () => {

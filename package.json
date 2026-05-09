@@ -7,6 +7,7 @@
     "start:android": "expo start --port 8082 --android",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
+    "validate:production-env": "node ./scripts/validate-production-env.js",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"

@@ -80,6 +80,10 @@ Saat user upload avatar baru atau menghapus avatar, backend akan membersihkan fi
 Backend ini sekarang sudah disiapkan untuk deploy generik, dan gateway Hono bersifat opsional:
 
 - [Dockerfile](C:\project\mobile-app-modiva\mobile_tester\backend\Dockerfile)
+- [docker-compose.vps.yml](C:\project\mobile-app-modiva\mobile_tester\backend\docker-compose.vps.yml)
+- [.env.production.example](C:\project\mobile-app-modiva\mobile_tester\backend\.env.production.example)
+- [deploy/Caddyfile](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\Caddyfile)
+- [deploy/VPS_DEPLOY.md](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\VPS_DEPLOY.md)
 - [Procfile](C:\project\mobile-app-modiva\mobile_tester\backend\Procfile)
 - [.env.example](C:\project\mobile-app-modiva\mobile_tester\backend\.env.example)
 - [railway.toml](C:\project\mobile-app-modiva\mobile_tester\backend\railway.toml)
@@ -90,9 +94,11 @@ Backend ini sekarang sudah disiapkan untuk deploy generik, dan gateway Hono bers
 
 ```bash
 cd backend
-docker build -t modiva-backend .
-docker run -d --name modiva-backend -p 8000:8000 -e MYSQL_HOST=host.docker.internal -e MYSQL_PORT=3306 -e MYSQL_USER=root -e MYSQL_PASSWORD=your_password -e MYSQL_DATABASE=modiva -v $(pwd)/uploads:/app/uploads modiva-backend
+cp .env.production.example .env.production
+docker compose -f docker-compose.vps.yml --env-file .env.production up -d --build
 ```
+
+Panduan lengkap VPS ada di [deploy/VPS_DEPLOY.md](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\VPS_DEPLOY.md).
 
 ### Opsi 2: Deploy ke platform seperti Railway/Render
 
@@ -119,6 +125,8 @@ docker run -d --name modiva-backend -p 8000:8000 -e MYSQL_HOST=host.docker.inter
 ### Catatan penting produksi
 
 - backend ini sekarang memakai MySQL
+- compose VPS memakai `caddy` untuk HTTPS otomatis di port `80/443`
+- file upload di produksi saat ini disimpan di volume Docker `uploads_data`
 - upload file di produksi sebaiknya dipindah ke object storage seperti S3-compatible storage
 - jangan build APK production ke IP laptop lokal; gunakan domain publik backend
 - runtime aktif sekarang adalah [main.py](C:\project\mobile-app-modiva\mobile_tester\backend\main.py)

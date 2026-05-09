@@ -1,0 +1,45 @@
+name: User Story
+description: Tambahkan backlog item Scrum dalam bentuk user story
+title: "[Story] "
+labels:
+  - backlog
+  - story
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: Tulis dengan format Sebagai, saya ingin, sehingga.
+      placeholder: Sebagai siswa, saya ingin ..., sehingga ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Tulis kriteria yang bisa diuji.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+  - type: input
+    id: estimate
+    attributes:
+      label: Story Point Estimate
+      placeholder: "3"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      placeholder: Dependency, risiko, atau catatan refinement.

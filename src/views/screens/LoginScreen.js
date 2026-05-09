@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // --- IMPORT AUTH CONTEXT ---
 import { useAuth } from '../../state/AuthContext'; 
+import { AppConfig } from '../../config/app.config';
 
 // --- ASET GAMBAR ---
 const LogoImage = require('../../../assets/images/Logo.png'); 
@@ -29,6 +30,8 @@ const IconIDSekolah = { uri: 'https://cdn-icons-png.flaticon.com/512/1665/166573
 const LoginScreen = () => {
   const router = useRouter();
   const { login } = useAuth(); 
+  const isDemoMode = AppConfig.environment.useMockApi && AppConfig.currentEnv === 'production';
+  const isProductionMisconfigured = AppConfig.release.isProductionApiMisconfigured;
 
   // State Data
   const [nis, setNis] = useState('');
@@ -125,6 +128,20 @@ const LoginScreen = () => {
               <View style={styles.welcomeTextContainer}>
                 <Text style={styles.welcomeTitle}>Selamat Datang</Text>
                 <Text style={styles.welcomeSubtitle}>Masuk untuk memantau kesehatanmu</Text>
+                {isProductionMisconfigured ? (
+                  <View style={[styles.demoNotice, styles.productionErrorNotice]}>
+                    <Text style={[styles.demoNoticeText, styles.productionErrorNoticeText]}>
+                      Build ini belum siap untuk user umum karena backend publik belum dikonfigurasi dengan benar.
+                    </Text>
+                  </View>
+                ) : null}
+                {isDemoMode ? (
+                  <View style={styles.demoNotice}>
+                    <Text style={styles.demoNoticeText}>
+                      Mode demo aktif. Data yang Anda kirim belum tersambung ke server publik.
+                    </Text>
+                  </View>
+                ) : null}
               </View>
 
               <View style={styles.formContainer}>
@@ -298,6 +315,26 @@ const styles = StyleSheet.create({
     color: '#6B7280', 
     textAlign: 'center',
     marginTop: 4,
+  },
+  demoNotice: {
+    marginTop: 14,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  demoNoticeText: {
+    color: '#92400E',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  productionErrorNotice: {
+    backgroundColor: '#FEE2E2',
+  },
+  productionErrorNoticeText: {
+    color: '#991B1B',
   },
   formContainer: {
     gap: 20,

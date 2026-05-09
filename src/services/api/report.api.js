@@ -5,6 +5,7 @@
  */
 import { apiService } from './api.services';
 import { ApiEndpoints, USE_MOCK_API, MOCK_API_DELAY } from '../../config/api.config.js';
+import { AppConfig } from '../../config/app.config.js';
 import { Logger } from '../../utils/logger.js';
 import { store } from '../../state/store.js';
 import {
@@ -140,6 +141,14 @@ export const ReportAPI = {
             });
         } catch (error) {
             if (!isRecoverableNetworkError(error)) {
+                throw error;
+            }
+
+            const isStrictProduction =
+                AppConfig.currentEnv === 'production' && !AppConfig.environment.useMockApi;
+
+            if (isStrictProduction) {
+                Logger.error('❌ ReportAPI.getAll gagal dan fallback mock dinonaktifkan di production.', error);
                 throw error;
             }
 
