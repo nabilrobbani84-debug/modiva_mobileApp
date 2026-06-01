@@ -130,22 +130,30 @@ export const ReportController = {
 
             // Create FormData
             const formData = new FormData();
-            formData.append('date', normalizedDate);
+            const distribusiId = reportData.distribusiId || reportData.distribusi_id || reportData.id;
+            if (!distribusiId) {
+                throw new Error('Pilih data distribusi TTD yang akan dilaporkan.');
+            }
+            formData.append('distribusi_id', String(distribusiId));
+            formData.append('tanggal_konsumsi', normalizedDate);
             if (compressedImage) {
                 if (compressedImage?.uri) {
-                    formData.append('photo', {
+                    formData.append('file', {
                         uri: compressedImage.uri,
                         name: compressedImage.name || `vitamin-proof-${Date.now()}.jpg`,
                         type: compressedImage.type || 'image/jpeg'
                     });
                 } else {
-                    formData.append('photo', compressedImage, 'vitamin-photo.jpg');
+                    formData.append('file', compressedImage, 'vitamin-photo.jpg');
                 }
             }
             if (normalizedNotes) {
-                formData.append('notes', normalizedNotes);
+                formData.append('keterangan', normalizedNotes);
             }
 
+            formData.distribusiId = distribusiId;
+            formData.distribusi_id = distribusiId;
+            formData.tanggal_konsumsi = normalizedDate;
             formData.date = normalizedDate;
             formData.notes = normalizedNotes;
             formData.photoUri = compressedImage?.uri || reportData.photo || null;

@@ -1,55 +1,69 @@
 /**
  * Modiva - Schools API Service
- * API calls untuk data lokasi sekolah
+ * API branch backend_modiva hanya menyediakan lokasi sekolah user aktif.
  * @module services/api/school.api
  */
-import { API_BASE_URL } from '../../config/api.config.js';
+import { ApiEndpoints } from '../../config/api.config.js';
 import { Logger } from '../../utils/logger.js';
+import { apiService } from './api.services.js';
+
+const parseCoordinates = (value) => {
+  const rawValue = String(value || '').trim();
+  if (!rawValue || !rawValue.includes(',')) {
+    return { latitude: null, longitude: null };
+  }
+
+  const [lat, lng] = rawValue.split(',').map((item) => Number(item.trim()));
+  return {
+    latitude: Number.isFinite(lat) ? lat : null,
+    longitude: Number.isFinite(lng) ? lng : null,
+  };
+};
+
+const normalizeSchoolLocation = (payload = {}) => {
+  const source = payload.data || payload;
+  const coordinates = parseCoordinates(source.gps_koordinat);
+
+  return {
+    id: source.id || 'active-school',
+    kode: source.kode || null,
+    nama: source.nama || source.nama_sekolah || 'Sekolah',
+    nama_lengkap: source.nama_lengkap || source.nama || source.nama_sekolah || 'Sekolah',
+    alamat: source.alamat || '-',
+    kota: source.kota || '',
+    provinsi: source.provinsi || '',
+    gps_koordinat: source.gps_koordinat || null,
+    latitude: source.latitude ?? coordinates.latitude,
+    longitude: source.longitude ?? coordinates.longitude,
+  };
+};
 
 export const SchoolAPI = {
-  async getAll(params = {}) {
-    Logger.info('🏫 SchoolAPI.getAll()', params);
-    const queryString = Object.entries(params)
-      .filter(([, value]) => value)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&');
-    const url = `${API_BASE_URL}/schools${queryString ? `?${queryString}` : ''}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+  async getLocation() {
+    Logger.info('📍 SchoolAPI.getLocation()');
+    const endpoint = ApiEndpoints.schools.getLocation;
+    const response = await apiService.get(endpoint.url, {
+      timeout: endpoint.timeout,
+      cache: false,
     });
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    return await response.json();
+
+    return {
+      success: response?.success !== false,
+      data: normalizeSchoolLocation(response),
+    };
   },
 
-  /**
-   * Ambil detail satu sekolah by ID
-   * @param {string} sekolahId
-   */
-  async getById(sekolahId) {
-    Logger.info('🏫 SchoolAPI.getById()', sekolahId);
-    const url = `${API_BASE_URL}/schools/${sekolahId}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    return await response.json();
+  async getAll() {
+    const location = await this.getLocation();
+    return {
+      success: location.success,
+      data: location.data ? [location.data] : [],
+      meta: { total: location.data ? 1 : 0 },
+    };
   },
 
-  /**
-   * Ambil koordinat GPS sekolah (untuk peta)
-   * @param {string} sekolahId
-   */
-  async getLocation(sekolahId) {
-    Logger.info('📍 SchoolAPI.getLocation()', sekolahId);
-    const url = `${API_BASE_URL}/schools/${sekolahId}/location`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    return await response.json();
+  async getById() {
+    return await this.getLocation();
   },
 };
 

@@ -42,9 +42,6 @@ const MockNotificationAPI = {
     /**
      * Mock mark as read
      */
-    /**
-     * Mock mark as read
-     */
     async markAsRead(id) {
         await new Promise(resolve => setTimeout(resolve, 200));
         Logger.info('🎭 Mock API: Mark Notification as Read', { id });
@@ -83,23 +80,15 @@ export const NotificationAPI = {
             return await MockNotificationAPI.getAll(params);
         }
         
-        const endpoint = ApiEndpoints.notifications.getAll;
-        try {
-            return await apiService.get(endpoint.url, {
-                query: params,
-                timeout: endpoint.timeout
-            });
-        } catch (error) {
-            const isStrictProduction =
-                AppConfig.currentEnv === 'production' && !AppConfig.environment.useMockApi;
-
-            if (!isRecoverableNetworkError(error) || isStrictProduction) {
-                throw error;
+        // Return empty notifications list because backend doesn't support notifications
+        return {
+            success: true,
+            data: [],
+            meta: {
+                total: 0,
+                unread: 0
             }
-
-            Logger.warn('NotificationAPI.getAll fallback ke Mock API.', error?.message);
-            return await MockNotificationAPI.getAll(params);
-        }
+        };
     },
     /**
      * Mark notification as read
@@ -110,16 +99,7 @@ export const NotificationAPI = {
         if (USE_MOCK_API) {
             return await MockNotificationAPI.markAsRead(id);
         }
-        
-        const endpoint = ApiEndpoints.notifications.markAsRead;
-        try {
-            return await apiService.put(endpoint.url, {}, {
-                params: { id },
-                timeout: endpoint.timeout
-            });
-        } catch (error) {
-            throw error;
-        }
+        return { success: true, message: 'Notification marked as read locally' };
     },
 
     /**
@@ -130,12 +110,7 @@ export const NotificationAPI = {
         if (USE_MOCK_API) {
             return await MockNotificationAPI.markAllAsRead();
         }
-
-        // Check if endpoint exists, if not use a generic one or multiple calls
-        const endpoint = ApiEndpoints.notifications.markAllRead || { url: '/notifications/read-all', timeout: 5000 };
-        return await apiService.put(endpoint.url, {}, {
-            timeout: endpoint.timeout
-        });
+        return { success: true, message: 'All notifications marked as read locally' };
     },
 
     /**
@@ -147,18 +122,7 @@ export const NotificationAPI = {
         if (USE_MOCK_API) {
             return await MockNotificationAPI.deleteNotification(id);
         }
-
-        const endpoint = ApiEndpoints.notifications.delete || { url: '/notifications/:id', timeout: 5000 };
-        // Replace :id if needed or use params
-        let url = endpoint.url;
-        if (url.includes(':id')) {
-            url = url.replace(':id', id);
-        }
-
-        return await apiService.delete(url, {
-            params: { id },
-            timeout: endpoint.timeout
-        });
+        return { success: true, message: 'Notification deleted locally' };
     }
 };
 export default NotificationAPI;

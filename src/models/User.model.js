@@ -9,25 +9,25 @@ import Logger from '../utils/logger.js'; // PERBAIKAN: Default import untuk logg
 
 export class UserModel {
     constructor(data = {}) {
-        this.id = data.id || null;
-        this.name = data.name || null;
-        this.nisn = data.nisn || null;
+        this.id = data.id || data.siswa_id || null;
+        this.name = data.name || data.nama || null;
+        this.nisn = data.nisn || data.nis || null;
         this.email = data.email || null;
         this.phone = data.phone || null;
-        this.school = data.school || null;
-        this.schoolId = data.schoolId || null;
-        this.schoolCode = data.schoolCode || data.school_code || null;
+        this.school = data.school || data.sekolah || data.nama_sekolah || null;
+        this.schoolId = data.schoolId || data.school_id || data.sekolah_id || null;
+        this.schoolCode = data.schoolCode || data.school_code || data.kode_sekolah || null;
         this.address = data.address || null;
-        this.birthPlace = data.birthPlace || data.birth_place || null;
-        this.birthDate = data.birthDate || data.birth_date || null;
+        this.birthPlace = data.birthPlace || data.birth_place || data.tmp_lahir || null;
+        this.birthDate = data.birthDate || data.birth_date || data.tgl_lahir || null;
         this.gender = data.gender || Gender.FEMALE;
-        this.height = data.height ? Number(data.height) : null; // Pastikan Number
-        this.weight = data.weight ? Number(data.weight) : null; // Pastikan Number
+        this.height = data.height || data.tinggi_badan ? Number(data.height || data.tinggi_badan) : null; // Pastikan Number
+        this.weight = data.weight || data.berat_badan ? Number(data.weight || data.berat_badan) : null; // Pastikan Number
         this.avatar = data.avatar || null;
         this.role = data.role || (UserRoles ? UserRoles.STUDENT : 'siswi');
 
         // Health data
-        this.hbLast = data.hbLast || data.hb_last ? Number(data.hbLast || data.hb_last) : null;
+        this.hbLast = data.hbLast || data.hb_last || data.hb ? Number(data.hbLast || data.hb_last || data.hb) : null;
         this.consumptionCount = Number(data.consumptionCount || data.consumption_count || 0);
         this.totalTarget = Number(data.totalTarget ?? data.total_target ?? 0);
 

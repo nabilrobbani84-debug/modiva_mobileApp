@@ -131,10 +131,12 @@ const ReportsScreen = () => {
     try {
       // 1. Format Data untuk Excel
       const dataToExport = reports.map((item) => ({
-        'Tanggal Pemeriksaan': item.date || '-',
-        'Nilai HB (g/dL)': item.hb_value || item.hbValue || 0,
-        'Status': getStatusText(item.hb_value || item.hbValue),
-        'Catatan': item.notes || '-'
+        'ID Distribusi': item.distribusiId || item.id || '-',
+        'Tanggal Terima': item.receivedDate || '-',
+        'Tanggal Konsumsi': item.date || '-',
+        'Jumlah': item.jumlah || 1,
+        'Status': item.status_konsumsi || item.status || '-',
+        'Keterangan': item.notes || '-'
       }));
 
       // 2. Buat Worksheet dan Workbook
@@ -156,7 +158,7 @@ const ReportsScreen = () => {
       // 4. Tentukan lokasi simpan sementara
       // Gunakan nama file yang aman (tanpa spasi aneh)
       const safeName = userInfo.name ? userInfo.name.replace(/[^a-zA-Z0-9]/g, '_') : 'User';
-      const fileName = `Laporan_HB_${safeName}_${new Date().getTime()}.xlsx`;
+      const fileName = `Riwayat_TTD_${safeName}_${new Date().getTime()}.xlsx`;
       const fileUri = FileSystem.cacheDirectory + fileName;
 
       // 5. Tulis file ke system
@@ -211,8 +213,8 @@ const ReportsScreen = () => {
       {/* --- Header --- */}
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Laporan Kesehatan</Text>
-          <Text style={styles.headerSubtitle}>Pantau perkembangan HB-mu</Text>
+          <Text style={styles.headerTitle}>Riwayat TTD</Text>
+          <Text style={styles.headerSubtitle}>Data konsumsi dari backend_modiva</Text>
         </View>
         
         <View style={styles.headerActions}>
@@ -285,9 +287,9 @@ const ReportsScreen = () => {
           />
         </View>
 
-        {/* --- 3. Riwayat Laporan --- */}
+        {/* --- 3. Riwayat Konsumsi --- */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Riwayat Pemeriksaan</Text>
+          <Text style={styles.sectionTitle}>Riwayat Konsumsi TTD</Text>
         </View>
 
         {loading ? (
@@ -295,13 +297,13 @@ const ReportsScreen = () => {
         ) : reports.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="document-text-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyText}>Belum ada riwayat laporan</Text>
+            <Text style={styles.emptyText}>Belum ada riwayat konsumsi</Text>
           </View>
         ) : (
           <View style={styles.listContainer}>
             {reports.map((report, index) => {
               const formattedDate = formatReportDate(report.date);
-              const hbValue = report.hb_value || report.hbValue;
+              const isDone = report.status_konsumsi === 'sudah' || report.status === 'Selesai';
 
               return (
               <View key={index} style={styles.reportItem}>
@@ -313,20 +315,16 @@ const ReportsScreen = () => {
                 
                 {/* Detail */}
                 <View style={styles.reportDetail}>
-                  <Text style={styles.reportTitle}>Pemeriksaan Rutin</Text>
+                  <Text style={styles.reportTitle}>Distribusi #{report.distribusiId || report.id}</Text>
                   <Text style={styles.reportNotes} numberOfLines={1}>
-                    {report.notes || ((report.photo || report.photoUrl || report.photo_url)
-                      ? 'Bukti minum tersimpan'
-                      : 'Tidak ada catatan tambahan')}
+                    {report.notes || (isDone ? 'Bukti minum tersimpan' : 'Menunggu laporan konsumsi')}
                   </Text>
                 </View>
 
-                {/* Nilai HB */}
-                <View style={styles.reportValueBox}>
-                  <Text style={[styles.reportValue, { color: getStatusColor(hbValue) }]}>
-                    {hbValue ?? '-'}
+                <View style={[styles.statusBadge, isDone ? styles.statusDone : styles.statusPending]}>
+                  <Text style={[styles.statusBadgeText, isDone ? styles.statusDoneText : styles.statusPendingText]}>
+                    {isDone ? 'Sudah' : 'Belum'}
                   </Text>
-                  <Text style={styles.reportUnit}>g/dL</Text>
                 </View>
               </View>
               );
@@ -555,6 +553,27 @@ const styles = StyleSheet.create({
   reportUnit: {
     fontSize: 12,
     color: COLORS.textSub,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  statusDone: {
+    backgroundColor: '#dcfce7',
+  },
+  statusPending: {
+    backgroundColor: '#fef3c7',
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  statusDoneText: {
+    color: '#15803d',
+  },
+  statusPendingText: {
+    color: '#92400e',
   },
 
   // Empty State

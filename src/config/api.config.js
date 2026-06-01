@@ -104,36 +104,20 @@ Logger.debug('📋 API Configuration:', {
  */
 export const ApiEndpoints = {
   auth: {
-    loginSiswa: { url: '/auth/login-siswa', method: 'POST', timeout: 15000 },
-    loginGuru: { url: '/auth/login-guru', method: 'POST', timeout: 10000 },
-    loginAdmin: { url: '/auth/login-admin', method: 'POST', timeout: 10000 },
-    logout: { url: '/auth/logout', method: 'POST', timeout: 5000 },
-    refreshToken: { url: '/auth/refresh', method: 'POST', timeout: 10000 },
-    verifyToken: { url: '/auth/verify', method: 'GET', timeout: 5000 },
-    resetPassword: { url: '/auth/password-reset', method: 'POST', timeout: 10000 },
-    changePassword: { url: '/auth/password-change', method: 'PUT', timeout: 10000 }
+    loginSiswa: { url: '/login', method: 'POST', timeout: 15000 }
   },
   user: {
-    getProfile: { url: '/users/profile', method: 'GET', timeout: 15000 },
-    updateProfile: { url: '/users/profile', method: 'PUT', timeout: 15000 },
-    uploadAvatar: { url: '/users/profile/avatar', method: 'POST', timeout: 30000 },
-    deleteAvatar: { url: '/users/profile/avatar', method: 'DELETE', timeout: 10000 }
+    getProfile: { url: '/siswa/profile', method: 'GET', timeout: 15000 },
+    updateProfile: { url: '/siswa/edit-profile', method: 'PUT', timeout: 15000 },
+    getHb: { url: '/siswa/hb', method: 'GET', timeout: 10000 }
   },
   reports: {
-    submit: { url: '/reports/submit', method: 'POST', timeout: 30000 },
-    getAll: { url: '/reports', method: 'GET', timeout: 10000 },
-    getById: { url: '/reports/:id', method: 'GET', timeout: 5000 }
-  },
-  notifications: {
-    getAll: { url: '/notifications', method: 'GET', timeout: 5000 },
-    markAsRead: { url: '/notifications/:id/read', method: 'PUT', timeout: 5000 },
-    markAllRead: { url: '/notifications/read-all', method: 'PUT', timeout: 5000 },
-    delete: { url: '/notifications/:id', method: 'DELETE', timeout: 5000 }
+    submit: { url: '/ttd', method: 'POST', timeout: 30000 },
+    getAll: { url: '/riwayat-konsumsi', method: 'GET', timeout: 10000 },
+    getById: { url: '/riwayat-konsumsi/:id', method: 'GET', timeout: 5000 }
   },
   schools: {
-    getAll: { url: '/schools', method: 'GET', timeout: 10000 },
-    getById: { url: '/schools/:id', method: 'GET', timeout: 5000 },
-    getLocation: { url: '/schools/:id/location', method: 'GET', timeout: 5000 }
+    getLocation: { url: '/sekolah/lokasi', method: 'GET', timeout: 5000 }
   }
 };
 

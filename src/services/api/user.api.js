@@ -51,6 +51,38 @@ const buildActiveProfileFallback = () => {
     };
 };
 
+const normalizeBackendProfile = (payload = {}) => {
+    return {
+        id: payload.id || payload.siswa_id || null,
+        name: payload.name || payload.nama || null,
+        nisn: payload.nisn || payload.nis || null,
+        email: payload.email || null,
+        school: payload.school || payload.sekolah || payload.nama_sekolah || null,
+        schoolId: payload.school_id || payload.schoolId || payload.sekolah_id || null,
+        schoolCode: payload.school_code || payload.schoolCode || payload.kode_sekolah || null,
+        birth_place: payload.birth_place || payload.birthPlace || payload.tmp_lahir || null,
+        birth_date: payload.birth_date || payload.birthDate || payload.tgl_lahir || null,
+        gender: payload.gender || null,
+        height: payload.height || payload.tinggi_badan || null,
+        weight: payload.weight || payload.berat_badan || null,
+        hb_last: payload.hb_last || payload.hbLast || payload.hb || null,
+        consumption_count: payload.consumption_count || payload.consumptionCount || 0,
+        total_target: payload.total_target || payload.totalTarget || 0,
+        created_at: payload.created_at || null,
+        updated_at: payload.updated_at || null
+    };
+};
+
+const toBackendProfilePayload = (data = {}) => ({
+    nama: data.name || data.nama,
+    email: data.email || '',
+    tmp_lahir: data.birthPlace || data.birth_place || data.tmp_lahir || '',
+    tgl_lahir: data.birthDate || data.birth_date || data.tgl_lahir || '',
+    gender: data.gender || 'P',
+    tinggi_badan: Number(data.height || data.tinggi_badan || 0),
+    berat_badan: Number(data.weight || data.berat_badan || 0)
+});
+
 /*
  * Mock User API
  */
@@ -137,7 +169,10 @@ export const UserAPI = {
         try {
             return await apiService.get(endpoint.url, {
                 timeout: endpoint.timeout
-            });
+            }).then((response) => ({
+                ...response,
+                data: normalizeBackendProfile(response?.data || response)
+            }));
         } catch (error) {
             throw error;
         }
@@ -155,9 +190,17 @@ export const UserAPI = {
         const endpoint = ApiEndpoints.user.updateProfile;
 
         try {
-            return await apiService.put(endpoint.url, data, {
+            const response = await apiService.put(endpoint.url, toBackendProfilePayload(data), {
                 timeout: endpoint.timeout
             });
+            return {
+                ...response,
+                success: response?.success !== false,
+                data: normalizeBackendProfile({
+                    ...data,
+                    ...(response?.data || {})
+                })
+            };
         } catch (error) {
             throw error;
         }
@@ -169,26 +212,7 @@ export const UserAPI = {
      * @returns {Promise<object>} - Upload response
      */
     async uploadAvatar(formData) {
-        const endpoint = ApiEndpoints.user.uploadAvatar;
-
-        if (USE_MOCK_API) {
-            return {
-                success: true,
-                message: 'Avatar uploaded successfully',
-                data: {
-                    avatar: formData?.avatarUri || null,
-                    updated_at: new Date().toISOString()
-                }
-            };
-        }
-
-        try {
-            return await apiService.upload(endpoint.url, formData, {
-                timeout: endpoint.timeout
-            });
-        } catch (error) {
-            throw error;
-        }
+        throw new Error('Upload foto profil tidak tersedia pada API backend_modiva.');
     },
 
     /**
@@ -196,26 +220,18 @@ export const UserAPI = {
      * @returns {Promise<object>} - Delete response
      */
     async deleteAvatar() {
-        const endpoint = ApiEndpoints.user.deleteAvatar;
+        throw new Error('Hapus foto profil tidak tersedia pada API backend_modiva.');
+    },
 
-        if (USE_MOCK_API) {
-            return {
-                success: true,
-                message: 'Avatar deleted successfully',
-                data: {
-                    avatar: null,
-                    updated_at: new Date().toISOString()
-                }
-            };
-        }
-
-        try {
-            return await apiService.delete(endpoint.url, {
-                timeout: endpoint.timeout
-            });
-        } catch (error) {
-            throw error;
-        }
+    async getHemoglobin() {
+        const endpoint = ApiEndpoints.user.getHb;
+        const response = await apiService.get(endpoint.url, {
+            timeout: endpoint.timeout
+        });
+        return {
+            ...response,
+            data: Array.isArray(response?.data) ? response.data : []
+        };
     }
 };
 

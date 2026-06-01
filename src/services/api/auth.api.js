@@ -121,6 +121,38 @@ export const createOfflineStudentSession = (credentials = {}) => {
     return MockAuthAPI.loginSiswa(normalizedCredentials);
 };
 
+const normalizeBackendLoginResponse = (response) => {
+    const data = response?.data || {};
+    const rawUser = response?.user || data.user || data;
+    const token = response?.token || response?.access || data.token || data.access;
+    const refreshToken = response?.refreshToken || response?.refresh || data.refreshToken || data.refresh || null;
+
+    return {
+        success: response?.success !== false && !!token,
+        message: response?.message,
+        token,
+        refreshToken,
+        user: {
+            id: rawUser.id || rawUser.siswa_id || null,
+            name: rawUser.name || rawUser.nama || null,
+            nisn: rawUser.nisn || rawUser.nis || null,
+            school: rawUser.school || rawUser.sekolah || null,
+            schoolId: rawUser.schoolId || rawUser.school_id || rawUser.sekolah_id || null,
+            schoolCode: rawUser.schoolCode || rawUser.school_code || rawUser.kode_sekolah || null,
+            role: rawUser.role || 'siswi',
+            email: rawUser.email || null,
+            birthPlace: rawUser.birthPlace || rawUser.birth_place || rawUser.tmp_lahir || null,
+            birthDate: rawUser.birthDate || rawUser.birth_date || rawUser.tgl_lahir || null,
+            gender: rawUser.gender || null,
+            height: rawUser.height || rawUser.tinggi_badan || null,
+            weight: rawUser.weight || rawUser.berat_badan || null,
+            hbLast: rawUser.hbLast || rawUser.hb_last || rawUser.hb || null,
+            consumptionCount: rawUser.consumptionCount || rawUser.consumption_count || 0,
+            totalTarget: rawUser.totalTarget || rawUser.total_target || 0
+        }
+    };
+};
+
 export const AuthAPI = {
     normalizeStudentLoginPayload,
 
@@ -174,10 +206,26 @@ export const AuthAPI = {
         }
         
         const endpoint = ApiEndpoints.auth.loginSiswa;
+        const backendPayload = {
+            nis: normalizedCredentials.nisn || normalizedCredentials.nis,
+            nisn: normalizedCredentials.nisn || normalizedCredentials.nis,
+            kode_sekolah:
+                normalizedCredentials.schoolCode ||
+                normalizedCredentials.school_code ||
+                normalizedCredentials.schoolId ||
+                normalizedCredentials.school_id,
+            schoolCode:
+                normalizedCredentials.schoolCode ||
+                normalizedCredentials.school_code ||
+                normalizedCredentials.schoolId ||
+                normalizedCredentials.school_id
+        };
+
         try {
-            return await apiService.post(endpoint.url, normalizedCredentials, {
+            const response = await apiService.post(endpoint.url, backendPayload, {
                 timeout: endpoint.timeout
             });
+            return normalizeBackendLoginResponse(response);
         } catch (error) {
             error.userMessage = this.extractApiErrorMessage(error);
             throw error;
@@ -192,14 +240,7 @@ export const AuthAPI = {
      * @returns {Promise<object>} - Login response
      */
     async loginGuru(credentials) {
-        if (USE_MOCK_API) {
-            return await MockAuthAPI.loginGuru(credentials);
-        }
-        
-        const endpoint = ApiEndpoints.auth.loginGuru;
-        return await apiService.post(endpoint.url, credentials, {
-            timeout: endpoint.timeout
-        });
+        return await MockAuthAPI.loginGuru(credentials);
     },
     /**
      * Login admin
@@ -209,24 +250,14 @@ export const AuthAPI = {
      * @returns {Promise<object>} - Login response
      */
     async loginAdmin(credentials) {
-        const endpoint = ApiEndpoints.auth.loginAdmin;
-        return await apiService.post(endpoint.url, credentials, {
-            timeout: endpoint.timeout
-        });
+        throw new Error('Login admin tidak tersedia pada API backend_modiva.');
     },
     /**
      * Logout
      * @returns {Promise<object>} - Logout response
      */
     async logout() {
-        if (USE_MOCK_API) {
-            return await MockAuthAPI.logout();
-        }
-        
-        const endpoint = ApiEndpoints.auth.logout;
-        return await apiService.post(endpoint.url, {}, {
-            timeout: endpoint.timeout
-        });
+        return { success: true, message: 'Logout local session' };
     },
     /**
      * Refresh token
@@ -234,28 +265,14 @@ export const AuthAPI = {
      * @returns {Promise<object>} - Token response
      */
     async refreshToken(refreshToken) {
-        if (USE_MOCK_API) {
-            return await MockAuthAPI.refreshToken(refreshToken);
-        }
-        
-        const endpoint = ApiEndpoints.auth.refreshToken;
-        return await apiService.post(endpoint.url, { refreshToken }, {
-            timeout: endpoint.timeout
-        });
+        return await MockAuthAPI.refreshToken(refreshToken);
     },
     /**
      * Verify token
      * @returns {Promise<object>} - Verification response
      */
     async verifyToken() {
-        if (USE_MOCK_API) {
-            return await MockAuthAPI.verifyToken();
-        }
-        
-        const endpoint = ApiEndpoints.auth.verifyToken;
-        return await apiService.get(endpoint.url, {
-            timeout: endpoint.timeout
-        });
+        return { success: true, valid: true };
     },
     /**
      * Reset password
@@ -263,14 +280,7 @@ export const AuthAPI = {
      * @returns {Promise<object>} - Reset response
      */
     async resetPassword(email) {
-        if (USE_MOCK_API) {
-            return await MockAuthAPI.resetPassword(email);
-        }
-        
-        const endpoint = ApiEndpoints.auth.resetPassword;
-        return await apiService.post(endpoint.url, { email }, {
-            timeout: endpoint.timeout
-        });
+        throw new Error('Reset password tidak tersedia pada API backend_modiva.');
     },
     /**
      * Change password
@@ -280,14 +290,7 @@ export const AuthAPI = {
      * @returns {Promise<object>} - Change response
      */
     async changePassword(data) {
-        if (USE_MOCK_API) {
-            return await MockAuthAPI.changePassword(data);
-        }
-        
-        const endpoint = ApiEndpoints.auth.changePassword;
-        return await apiService.put(endpoint.url, data, {
-            timeout: endpoint.timeout
-        });
+        throw new Error('Ubah password tidak tersedia pada API backend_modiva.');
     }
 };
 export default AuthAPI;

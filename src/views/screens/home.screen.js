@@ -45,25 +45,19 @@ export default function HomeScreen() {
         console.log('Gagal memuat dashboard:', error);
       });
 
-      // Fetch School Data
-      const currentProfile = store.getState().user.profile;
-      const currentSchoolKey = currentProfile?.schoolCode || currentProfile?.schoolId;
-      if (currentSchoolKey) {
-         SchoolAPI.getById(currentSchoolKey).then(res => {
-             if (res.success && res.data) {
-                 setMySchool(res.data);
-             }
-         }).catch(err => console.log('Gagal ambil data sekolah:', err));
-      } else if (currentProfile?.schoolId || currentProfile?.schoolCode) {
-         SchoolAPI.getAll().then(res => {
-             if (res.success && Array.isArray(res.data)) {
-                 const foundSchool = res.data.find((school) => matchesUserSchool(school, currentProfile));
-                 if (foundSchool) {
-                   setMySchool(foundSchool);
-                 }
-             }
-         }).catch(err => console.log('Gagal cari data sekolah:', err));
-      }
+      SchoolAPI.getLocation()
+        .then((res) => {
+          if (res?.data || res?.nama_sekolah) {
+            const schoolData = res.data || res;
+            setMySchool({
+              nama: schoolData.nama || schoolData.nama_sekolah,
+              alamat: schoolData.alamat,
+              kota: schoolData.kota || '',
+              gps_koordinat: schoolData.gps_koordinat
+            });
+          }
+        })
+        .catch(err => console.log('Gagal ambil data sekolah:', err));
 
       // 2. Fallback check (Controller)
       const currentUser = AuthController.getCurrentUser();
