@@ -15,6 +15,13 @@ import {
 import { Logger } from '../../utils/logger.js';
 import { APIInterceptors } from './interceptors.js';
 
+const isRecoverableRequestError = (error) => (
+    Logger.isRecoverableApiError?.(error) ||
+    error?.isTimeout === true ||
+    error?.code === 'TIMEOUT_ERROR' ||
+    error?.code === 'NETWORK_ERROR'
+);
+
 /*
  * API Service Class
  * Handles all HTTP requests with interceptors and error handling
@@ -331,7 +338,11 @@ export class APIService {
             return await requestPromise;
 
         } catch (error) {
-            Logger.error('❌ API Request failed:', error);
+            if (isRecoverableRequestError(error)) {
+                Logger.warn('API request skipped/fell back:', error?.message || error);
+            } else {
+                Logger.error('❌ API Request failed:', error);
+            }
             throw error;
         }
     }

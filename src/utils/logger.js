@@ -90,6 +90,22 @@ export class Logger {
       console.error(`❌ [ERROR] ${message}`, ...args);
     }
   }
+
+  static isRecoverableApiError(error) {
+    const message = String(error?.userMessage || error?.message || error || '').toLowerCase();
+    const code = error?.code || '';
+
+    return (
+      error?.isTimeout === true ||
+      code === 'TIMEOUT_ERROR' ||
+      code === 'NETWORK_ERROR' ||
+      message.includes('waktu permintaan habis') ||
+      message.includes('network request failed') ||
+      message.includes('failed to fetch') ||
+      message.includes('gangguan koneksi internet') ||
+      message.includes('server backend tidak dapat dijangkau')
+    );
+  }
   
   /**
    * Log API request
@@ -119,7 +135,7 @@ export class Logger {
   static apiError(error, context = '') {
     if (currentLogLevel <= LogLevel.ERROR) {
       console.groupCollapsed(`🚨 [API ERROR] ${context}`);
-      if (error && error.status && error.status >= 400 && error.status < 500) {
+      if (Logger.isRecoverableApiError(error) || (error && error.status && error.status >= 400 && error.status < 500)) {
         console.warn('Error Details:', error);
       } else {
         console.error('Error Details:', error);

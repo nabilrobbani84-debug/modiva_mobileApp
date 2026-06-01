@@ -35,7 +35,7 @@ new_block = '''footerText: {
     fontSize: 12,
     textTransform: 'none',
     letterSpacing: 0,
-  },
+  }, 
   infoBox: {
     backgroundColor: '#EFF6FF',
     borderRadius: 12,
@@ -73,5 +73,5 @@ content = content[:idx] + new_block + content[end:]
 with open(r'src\views\screens\LoginScreen.js', 'w', encoding='utf-8', newline='') as f:
     f.write(content)
 
-print('SUCCESS: File fixed!')
+print('SUCCESS: File fixed!') 
 print('New total chars:', len(content))

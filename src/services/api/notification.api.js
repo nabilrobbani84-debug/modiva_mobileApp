@@ -4,10 +4,14 @@
  * @module services/api/notification.api
  */
 import { ApiEndpoints, USE_MOCK_API } from '../../config/api.config.js';
+import { AppConfig } from '../../config/app.config.js';
 import { Logger } from '../../utils/logger.js';
 import { apiService } from './api.services.js';
 import { store } from '../../state/store.js';
-import { getMockNotificationsForUser } from './mock.database.js';
+import {
+    getMockNotificationsForUser,
+    isRecoverableNetworkError
+} from './mock.database.js';
 /**
  * Mock Notification API
  */
@@ -86,7 +90,15 @@ export const NotificationAPI = {
                 timeout: endpoint.timeout
             });
         } catch (error) {
-            throw error;
+            const isStrictProduction =
+                AppConfig.currentEnv === 'production' && !AppConfig.environment.useMockApi;
+
+            if (!isRecoverableNetworkError(error) || isStrictProduction) {
+                throw error;
+            }
+
+            Logger.warn('NotificationAPI.getAll fallback ke Mock API.', error?.message);
+            return await MockNotificationAPI.getAll(params);
         }
     },
     /**

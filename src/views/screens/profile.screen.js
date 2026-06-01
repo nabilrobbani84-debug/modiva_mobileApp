@@ -358,7 +358,6 @@ const ProfileScreen = () => {
             <View style={styles.infoCard}>
                 <InfoRow label="NISN" value={user.nisn || '-'} />
                 <InfoRow label="Tempat/Tgl Lahir" value={`${user.birthPlace || '-'}, ${user.birthDate || '-'}`} />
-                <InfoRow label="Jenis Kelamin" value={user.gender === 'F' ? 'Perempuan' : user.gender === 'M' ? 'Laki-laki' : '-'} />
             </View>
           {/* Statistik Kesehatan */}
           <Text style={styles.sectionTitle}>Statistik Kesehatan</Text>
@@ -383,7 +382,11 @@ const ProfileScreen = () => {
             />
             <StatCard 
               label="Target TTD" 
-              value={`${user.consumptionCount || 0}/${user.totalTarget || 48}`} 
+              value={
+                Number(user.totalTarget ?? user.total_target ?? 0) > 0
+                  ? `${user.consumptionCount || 0}/${Number(user.totalTarget ?? user.total_target ?? 0)}`
+                  : `${user.consumptionCount || 0}`
+              }
               icon="medkit-outline" 
               color="#3b82f6" 
             />

@@ -211,7 +211,7 @@ export const HemoglobinConstants = {
  * User Roles
  */
 export const UserRoles = {
-    STUDENT: 'siswa',
+    STUDENT: 'siswi',
     TEACHER: 'guru',
     ADMIN: 'admin',
     PARENT: 'orangtua',

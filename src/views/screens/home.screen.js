@@ -81,8 +81,8 @@ export default function HomeScreen() {
   );
 
   // Helper values with defaults from user profile
-  const consumptionCount = user.consumptionCount || 0;
-  const totalTarget = user.totalTarget || 48; // Default to 48 if not set
+  const consumptionCount = Number(user.consumptionCount ?? user.consumption_count ?? 0);
+  const totalTarget = Number(user.totalTarget ?? user.total_target ?? 0);
   const hbValue = user.hbLast || user.hb || 0; // Support both naming conventions
   
   const percentage = totalTarget > 0 ? Math.round((consumptionCount / totalTarget) * 100) : 0;
@@ -155,8 +155,12 @@ export default function HomeScreen() {
           
           <View style={styles.statRow}>
             <Text style={styles.bigStat}>{consumptionCount}</Text>
-            <Text style={styles.statDivider}>/</Text>
-            <Text style={styles.totalStat}>{totalTarget}</Text>
+            {totalTarget > 0 ? (
+              <>
+                <Text style={styles.statDivider}>/</Text>
+                <Text style={styles.totalStat}>{totalTarget}</Text>
+              </>
+            ) : null}
           </View>
           <Text style={styles.statLabel}>Jumlah vitamin diminum</Text>
           

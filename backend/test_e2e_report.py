@@ -4,10 +4,14 @@ import json
 import uuid
 import datetime
 import mimetypes
+import os
 from io import BytesIO
 
 # 1. Login
-data = json.dumps({"nisn": "0110222079", "schoolCode": "SMPN1JKT"}).encode("utf-8")
+TEST_NISN = os.environ.get("MODIVA_TEST_NISN", "10001")
+TEST_SCHOOL_CODE = os.environ.get("MODIVA_TEST_SCHOOL_CODE", "20223819")
+
+data = json.dumps({"nisn": TEST_NISN, "schoolCode": TEST_SCHOOL_CODE}).encode("utf-8")
 req_login = urllib.request.Request("http://127.0.0.1:8000/api/auth/login-siswa", data=data, headers={"Content-Type": "application/json"})
 login_res = urllib.request.urlopen(req_login)
 login_data = json.loads(login_res.read().decode("utf-8"))

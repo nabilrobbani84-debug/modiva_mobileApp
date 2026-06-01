@@ -3,11 +3,12 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start --port 8082",
-    "start:android": "expo start --port 8082 --android",
+    "start": "expo start --port 8082 --offline",
+    "start:android": "expo start --port 8082 --android --offline",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "validate:production-env": "node ./scripts/validate-production-env.js",
+    "build:android:production": "powershell -ExecutionPolicy Bypass -File ./scripts/build-production-android.ps1",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"

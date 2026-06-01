@@ -3,8 +3,6 @@
  * Handles notification management
  * @module controllers/notification
  */
-
-import * as Notifications from 'expo-notifications'; // IMPORT EXPO NOTIFICATIONS
 import { Platform } from 'react-native';
 import { NotificationModel } from '../models/Notification.model.js';
 import { analyticsService, EventTypes } from '../services/analytics/analytics.service.js';
@@ -19,18 +17,50 @@ import {
     setItem,
     STORAGE_KEYS
 } from '../utils/helpers/storageHelpers.js';
+import {
+    getNativeNotifications,
+    getNativeNotificationsDisabledReason
+} from '../utils/helpers/nativeNotificationHelpers.js';
 
 const DAILY_REMINDER_ID_KEY = `${STORAGE_KEYS.NOTIFICATIONS}_daily_reminder_id`;
 const DAILY_REMINDER_SIGNATURE_KEY = `${STORAGE_KEYS.NOTIFICATIONS}_daily_reminder_signature`;
 const DEFAULT_REMINDER_TIME = '08:00';
+let hasLoggedNativeNotificationSkip = false;
+
+const logNativeNotificationSkipOnce = () => {
+    const reason = getNativeNotificationsDisabledReason();
+
+    if (!reason || hasLoggedNativeNotificationSkip) {
+        return;
+    }
+
+    hasLoggedNativeNotificationSkip = true;
+    Logger.warn(reason);
+};
+
+const getAvailableNativeNotifications = () => {
+    const Notifications = getNativeNotifications();
+
+    if (!Notifications) {
+        logNativeNotificationSkipOnce();
+    }
+
+    return Notifications;
+};
 
 /**
  * Notification Controller
  */
 export const NotificationController = {
     async ensureNotificationChannel() {
+        const Notifications = getAvailableNativeNotifications();
+
+        if (!Notifications) {
+            return false;
+        }
+
         if (Platform.OS !== 'android') {
-            return;
+            return true;
         }
 
         await Notifications.setNotificationChannelAsync('daily-reminders', {
@@ -40,12 +70,20 @@ export const NotificationController = {
             vibrationPattern: [0, 250, 250, 250],
             lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
         });
+
+        return true;
     },
 
     /**
      * Request notification permissions
      */
     async requestPermissions() {
+        const Notifications = getAvailableNativeNotifications();
+
+        if (!Notifications) {
+            return false;
+        }
+
         await this.ensureNotificationChannel();
 
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -96,6 +134,12 @@ export const NotificationController = {
             return;
         }
 
+        const Notifications = getAvailableNativeNotifications();
+
+        if (!Notifications) {
+            return;
+        }
+
         const schedule = this.getReminderSchedule(profile);
         const savedIdentifier = await getItem(DAILY_REMINDER_ID_KEY);
         const savedSignature = await getItem(DAILY_REMINDER_SIGNATURE_KEY);
@@ -142,8 +186,9 @@ export const NotificationController = {
 
     async cancelDailyReminder() {
         const identifier = await getItem(DAILY_REMINDER_ID_KEY);
+        const Notifications = getAvailableNativeNotifications();
 
-        if (identifier) {
+        if (identifier && Notifications) {
             try {
                 await Notifications.cancelScheduledNotificationAsync(identifier);
             } catch (error) {
@@ -378,6 +423,13 @@ export const NotificationController = {
             localStorageService.setUnreadNotificationsCount(state.notifications.unreadCount);
 
             // 2. Schedule System Notification (Push Notification)
+            const Notifications = getAvailableNativeNotifications();
+
+            if (!Notifications) {
+                Logger.info('✅ Local notification added as in-app notification only');
+                return;
+            }
+
             await Notifications.scheduleNotificationAsync({
                 content: {
                     title: notification.title,
@@ -470,13 +522,18 @@ export const NotificationController = {
         if (this.schedulerInterval) return;
         
         Logger.info('⏰ Notification Scheduler Started');
-        
-        // 1. Request permissions first
-        await this.requestPermissions();
 
-        // 2. Guard: hanya jalankan jika sudah ada token (user sudah login)
+        // Guard: hanya jalankan jika sudah ada token (user sudah login)
         const token = await getAuthToken();
         if (token) {
+            const Notifications = getAvailableNativeNotifications();
+
+            if (!Notifications) {
+                this.checkReminders();
+                this.loadNotifications();
+                return;
+            }
+
             await this.ensureDailyReminderScheduled();
             this.checkReminders();
             this.loadNotifications();
@@ -484,7 +541,7 @@ export const NotificationController = {
             Logger.warn('⚠️ Scheduler started but user not logged in, skipping initial checks.');
         }
 
-        // 3. Check every minute
+        // Check every minute
         this.schedulerInterval = setInterval(async () => {
             const currentToken = await getAuthToken();
             if (currentToken) {

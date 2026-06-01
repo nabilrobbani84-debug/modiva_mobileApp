@@ -1,4 +1,4 @@
-api.modiva.id {
+{$PUBLIC_HOSTNAME} {
   encode gzip
 
   reverse_proxy backend:8000

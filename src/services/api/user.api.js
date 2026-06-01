@@ -44,7 +44,7 @@ const buildActiveProfileFallback = () => {
         weight: null,
         hb_last: null,
         consumption_count: 0,
-        total_target: 48,
+        total_target: 0,
         avatar: null,
         created_at: null,
         updated_at: new Date().toISOString()

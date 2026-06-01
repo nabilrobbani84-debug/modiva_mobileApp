@@ -201,7 +201,7 @@ export const ProfileController = {
             currentHB: hb.current || user.hbLast || 0,
             
             consumptionCount: consumption.count || user.consumptionCount || 0,
-            consumptionTarget: consumption.target || user.totalTarget || 90,
+            consumptionTarget: consumption.target ?? user.totalTarget ?? 0,
             
             // Computed fields from Model
             bmi: user.getBMI() || 0,

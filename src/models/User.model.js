@@ -20,16 +20,16 @@ export class UserModel {
         this.address = data.address || null;
         this.birthPlace = data.birthPlace || data.birth_place || null;
         this.birthDate = data.birthDate || data.birth_date || null;
-        this.gender = data.gender || null;
+        this.gender = data.gender || Gender.FEMALE;
         this.height = data.height ? Number(data.height) : null; // Pastikan Number
         this.weight = data.weight ? Number(data.weight) : null; // Pastikan Number
         this.avatar = data.avatar || null;
-        this.role = data.role || (UserRoles ? UserRoles.STUDENT : 'student');
+        this.role = data.role || (UserRoles ? UserRoles.STUDENT : 'siswi');
 
         // Health data
         this.hbLast = data.hbLast || data.hb_last ? Number(data.hbLast || data.hb_last) : null;
         this.consumptionCount = Number(data.consumptionCount || data.consumption_count || 0);
-        this.totalTarget = Number(data.totalTarget || data.total_target || 48);
+        this.totalTarget = Number(data.totalTarget ?? data.total_target ?? 0);
 
         // Timestamps
         this.createdAt = data.createdAt || data.created_at || null;
@@ -133,10 +133,8 @@ export class UserModel {
         if (this.hbLast === null) return null;
         
         // Safety check jika Gender enum undefined
-        const isMale = this.gender === (Gender?.MALE || 'male');
-        
-        const normalMin = isMale ? 13.0 : 12.0;
-        const normalMax = isMale ? 17.0 : 16.0;
+        const normalMin = 12.0;
+        const normalMax = 16.0;
 
         if (this.hbLast < normalMin - 2) return 'severe';
         if (this.hbLast < normalMin) return 'low';

@@ -25,6 +25,7 @@ body:
       options:
         - Todo
         - In Progress
+        - Blocked
         - Review
         - Done
     validations:
@@ -34,6 +35,13 @@ body:
     attributes:
       label: Done Criteria
       placeholder: |
-        - [ ] code selesai
-        - [ ] test dijalankan
-        - [ ] dokumentasi diperbarui
+        - [ ] Acceptance criteria terkait terpenuhi
+        - [ ] Code selesai
+        - [ ] Test dijalankan
+        - [ ] Dokumentasi/checklist diperbarui
+        - [ ] Tidak ada blocker kritis
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / Test Notes
+      placeholder: Link PR, command test, screenshot, APK/device, endpoint, atau catatan blocker.

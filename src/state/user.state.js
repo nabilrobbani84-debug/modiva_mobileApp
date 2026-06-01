@@ -23,17 +23,17 @@ export const UserState = {
                 schoolId: null,
                 address: null,
                 birthDate: null,
-                gender: null,
+                gender: 'F',
                 height: null,
                 weight: null,
                 avatar: null,
-                role: null,
+                role: 'siswi',
                 createdAt: null,
                 updatedAt: null
             },
             vitaminConsumption: {
                 count: 0,
-                target: 48,
+                target: 0,
                 percentage: 0,
                 lastConsumed: null
             },

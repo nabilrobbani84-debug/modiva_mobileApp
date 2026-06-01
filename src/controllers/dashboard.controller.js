@@ -42,7 +42,7 @@ const mergeProfileWithLocalState = (incomingProfile = {}, currentProfile = {}) =
         Number(incomingProfile?.consumptionCount || incomingProfile?.consumption_count || 0)
     ),
     hbLast: incomingProfile?.hbLast ?? incomingProfile?.hb_last ?? currentProfile?.hbLast ?? null,
-    totalTarget: incomingProfile?.totalTarget ?? incomingProfile?.total_target ?? currentProfile?.totalTarget ?? 48,
+    totalTarget: incomingProfile?.totalTarget ?? incomingProfile?.total_target ?? currentProfile?.totalTarget ?? 0,
     updatedAt: incomingProfile?.updatedAt || incomingProfile?.updated_at || currentProfile?.updatedAt || new Date().toISOString()
 });
 

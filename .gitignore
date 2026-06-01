@@ -5,6 +5,10 @@
 expo-env.d.ts
 # @end expo-cli
 node_modules/
+.env
+.env.local
+.env.production
+.env.production.local
 backend/.env
 backend/.env.production
 backend/__pycache__/

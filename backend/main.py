@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import mimetypes
 import os
 import uuid
@@ -28,181 +29,14 @@ APP_ENV = str(os.environ.get("APP_ENV", "development")).strip().lower()
 PUBLIC_BASE_URL = str(os.environ.get("PUBLIC_BASE_URL", "")).strip()
 
 MYSQL_HOST = os.environ.get("MYSQL_HOST", "127.0.0.1")
-MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3306"))
+MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3309"))
 MYSQL_USER = os.environ.get("MYSQL_USER", "root")
 MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
-MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "modiva")
+MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "db_modiva")
 CORS_ALLOW_ORIGINS = [
     origin.strip()
     for origin in str(os.environ.get("CORS_ALLOW_ORIGINS", "*")).split(",")
     if origin.strip()
-]
-
-
-SEED_SCHOOLS = [
-    {
-        "id": "1",
-        "kode": "SMPN1JKT",
-        "nama": "SMPN 1 Jakarta",
-        "nama_lengkap": "Sekolah Menengah Pertama Negeri 1 Jakarta",
-        "alamat": "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
-        "kota": "Jakarta Pusat",
-        "provinsi": "DKI Jakarta",
-        "kode_pos": "10330",
-        "telepon": "(021) 3913371",
-        "email": "smpn1jkt@disdik.jakarta.go.id",
-        "kepala_sekolah": "Drs. H. Ahmad Fauzi, M.Pd",
-        "akreditasi": "A",
-        "npsn": "20100047",
-        "latitude": -6.196241,
-        "longitude": 106.836671,
-        "jumlah_siswa": 1,
-        "status": "Negeri",
-        "jenjang": "SMP",
-    },
-    {
-        "id": "3",
-        "kode": "20223819",
-        "nama": "SMAN 1 KOTA DEPOK",
-        "nama_lengkap": "Sekolah Menengah Atas Negeri 1 Kota Depok",
-        "alamat": "Jl. Nusantara Raya 317, Depok, Kota Depok",
-        "kota": "Kota Depok",
-        "provinsi": "Jawa Barat",
-        "kode_pos": "16431",
-        "telepon": "(021) 7520137",
-        "email": "sman1depokjabar@gmail.com",
-        "kepala_sekolah": "Kepala Sekolah SMAN 1 Kota Depok",
-        "akreditasi": "A",
-        "npsn": "20223819",
-        "latitude": -6.402222,
-        "longitude": 106.801944,
-        "jumlah_siswa": 5,
-        "status": "Negeri",
-        "jenjang": "SMA",
-    },
-    {
-        "id": "8",
-        "kode": "20223818",
-        "nama": "SMAN 2 KOTA DEPOK",
-        "nama_lengkap": "Sekolah Menengah Atas Negeri 2 Kota Depok",
-        "alamat": "Jl. Gede Raya No. 177, Depok Timur, Abadi Jaya, Kota Depok",
-        "kota": "Kota Depok",
-        "provinsi": "Jawa Barat",
-        "kode_pos": "16412",
-        "telepon": "(021) 7708359",
-        "email": "sman2.depok@yahoo.com",
-        "kepala_sekolah": "Kepala Sekolah SMAN 2 Kota Depok",
-        "akreditasi": "A",
-        "npsn": "20223818",
-        "latitude": -6.389722,
-        "longitude": 106.831667,
-        "jumlah_siswa": 4,
-        "status": "Negeri",
-        "jenjang": "SMA",
-    },
-    {
-        "id": "9",
-        "kode": "20258460",
-        "nama": "SMAN 15 Depok",
-        "nama_lengkap": "Sekolah Menengah Atas Negeri 15 Depok",
-        "alamat": "Jl. Merdeka No. 78, Abadijaya, Kec. Sukmajaya, Kota Depok",
-        "kota": "Kota Depok",
-        "provinsi": "Jawa Barat",
-        "kode_pos": "16417",
-        "telepon": None,
-        "email": None,
-        "kepala_sekolah": "Kepala Sekolah SMAN 15 Depok",
-        "akreditasi": "A",
-        "npsn": "20258460",
-        "latitude": -6.381667,
-        "longitude": 106.8425,
-        "jumlah_siswa": 8,
-        "status": "Negeri",
-        "jenjang": "SMA",
-    },
-    {
-        "id": "12",
-        "kode": "20223817",
-        "nama": "SMAN 3 KOTA DEPOK",
-        "nama_lengkap": "Sekolah Menengah Atas Negeri 3 Kota Depok",
-        "alamat": "Jl. Raden Saleh No.45, Sukmajaya, Kec. Sukmajaya, Kota Depok",
-        "kota": "Kota Depok",
-        "provinsi": "Jawa Barat",
-        "kode_pos": "16412",
-        "telepon": "021-7700310",
-        "email": "SMANTIGADEPOK@YAHOO.COM",
-        "kepala_sekolah": "Kepala Sekolah SMAN 3 Kota Depok",
-        "akreditasi": "A",
-        "npsn": "20223817",
-        "latitude": -6.390833,
-        "longitude": 106.835556,
-        "jumlah_siswa": 6,
-        "status": "Negeri",
-        "jenjang": "SMA",
-    },
-]
-
-SEED_USERS = [
-    {
-        "id": "1",
-        "name": "Gita Hidayat",
-        "nisn": "10001",
-        "email": "gita.hidayat@outlook.com",
-        "phone": "081234567801",
-        "school_id": "3",
-        "school_code": "20223819",
-        "address": "Depok",
-        "birth_place": "Depok",
-        "birth_date": "2010-05-25",
-        "gender": "M",
-        "height": 155,
-        "weight": 45,
-        "hb_last": 12.0,
-        "consumption_count": 5,
-        "total_target": 90,
-        "role": "siswa",
-        "avatar": None,
-    },
-    {
-        "id": "2",
-        "name": "Nanda Lestari",
-        "nisn": "10002",
-        "email": "nanda.lestari@yahoo.com",
-        "phone": "081234567802",
-        "school_id": "3",
-        "school_code": "20223819",
-        "address": "Depok",
-        "birth_place": "Bekasi",
-        "birth_date": "2006-06-18",
-        "gender": "M",
-        "height": 158,
-        "weight": 48,
-        "hb_last": 11.5,
-        "consumption_count": 10,
-        "total_target": 90,
-        "role": "siswa",
-        "avatar": None,
-    },
-    {
-        "id": "99",
-        "name": "Rizky Pratama",
-        "nisn": "0110222079",
-        "email": "rizky.pratama@modiva.id",
-        "phone": "081234567899",
-        "school_id": "1",
-        "school_code": "SMPN1JKT",
-        "address": "Jakarta",
-        "birth_place": "Jakarta",
-        "birth_date": "2008-08-17",
-        "gender": "M",
-        "height": 170,
-        "weight": 60,
-        "hb_last": 13.5,
-        "consumption_count": 15,
-        "total_target": 90,
-        "role": "siswa",
-        "avatar": None,
-    },
 ]
 
 
@@ -262,7 +96,475 @@ def check_database_connection() -> dict[str, Any]:
     return {"ok": bool(result.get("ok"))}
 
 
+def is_couchbase_configured() -> bool:
+    return False
+
+
+def validate_couchbase_config() -> None:
+    return
+
+
+def check_couchbase_connection() -> dict[str, Any]:
+    return {
+        "configured": False,
+        "available": False,
+        "message": "Couchbase dinonaktifkan. Backend menggunakan MySQL sebagai database utama.",
+        "bucket": None,
+    }
+
+
+def get_couchbase_cluster():
+    raise RuntimeError("Couchbase dinonaktifkan")
+
+
+def get_couchbase_notification_collection():
+    cluster = get_couchbase_cluster()
+    bucket = cluster.bucket(COUCHBASE_BUCKET)
+    collection = bucket.default_collection()
+    return cluster, collection
+
+
+def get_couchbase_report_collection():
+    cluster = get_couchbase_cluster()
+    bucket = cluster.bucket(COUCHBASE_BUCKET)
+    collection = bucket.default_collection()
+    return cluster, collection
+
+
+def get_couchbase_school_collection():
+    cluster = get_couchbase_cluster()
+    bucket = cluster.bucket(COUCHBASE_BUCKET)
+    collection = bucket.default_collection()
+    return cluster, collection
+
+
+def get_couchbase_profile_collection():
+    cluster = get_couchbase_cluster()
+    bucket = cluster.bucket(COUCHBASE_BUCKET)
+    collection = bucket.default_collection()
+    return cluster, collection
+
+
+def build_notification_feed_doc_id(user_id: str) -> str:
+    return f"{COUCHBASE_NOTIFICATION_FEED_PREFIX}{user_id}"
+
+
+def build_report_feed_doc_id(user_id: str) -> str:
+    return f"{COUCHBASE_REPORT_FEED_PREFIX}{user_id}"
+
+
+def build_school_doc_id(school_id: str) -> str:
+    return f"{COUCHBASE_SCHOOL_PREFIX}{school_id}"
+
+
+def build_profile_doc_id(user_id: str) -> str:
+    return f"{COUCHBASE_PROFILE_PREFIX}{user_id}"
+
+
+def notification_row_to_payload(row: dict[str, Any]) -> dict[str, Any]:
+    raw_metadata = row.get("metadata")
+    parsed_metadata: Any = {}
+    if isinstance(raw_metadata, str) and raw_metadata.strip():
+        try:
+            parsed_metadata = json.loads(raw_metadata)
+        except json.JSONDecodeError:
+            parsed_metadata = {"raw": raw_metadata}
+    elif isinstance(raw_metadata, dict):
+        parsed_metadata = raw_metadata
+
+    return {
+        "id": int(row["id"]),
+        "type": row["type"],
+        "title": row["title"],
+        "message": row["message"],
+        "timestamp": row["created_at"],
+        "read": bool(row.get("is_read")),
+        "icon": row.get("icon"),
+        "color": row.get("color"),
+        "action": row.get("action"),
+        "metadata": parsed_metadata,
+        "updated_at": row.get("updated_at"),
+    }
+
+
+def report_row_to_payload(row: dict[str, Any], user_row: Optional[dict[str, Any]] = None, request: Optional[Request] = None) -> dict[str, Any]:
+    hb_value = (user_row or {}).get("hb_last")
+    created_at = row["created_at"]
+    created_at_dt = datetime.fromisoformat(created_at)
+    return {
+        "id": int(row["id"]),
+        "user_id": row["user_id"],
+        "date": row["report_date"],
+        "hb_value": hb_value,
+        "status": "Selesai",
+        "photo_url": build_upload_url(request, row.get("photo_filename")) if request else row.get("photo_filename"),
+        "notes": row.get("notes") or "",
+        "created_at": created_at,
+        "updated_at": row["updated_at"],
+        "timestamp": int(created_at_dt.timestamp() * 1000),
+    }
+
+
+def build_app_hb_trends(user_id: str) -> list[dict[str, Any]]:
+    rows = fetch_all(
+        """
+        SELECT id, legacy_hb_id, year_label, hb_value, notes, created_at
+        FROM user_hb_history
+        WHERE user_id = %s
+        ORDER BY year_label ASC, id ASC
+        """,
+        (user_id,),
+    )
+
+    trends: list[dict[str, Any]] = []
+    for row in rows:
+        year = int(row["year_label"])
+        point_id = row.get("legacy_hb_id") or row["id"]
+        trends.append(
+            {
+                "id": f"hb-{point_id}",
+                "hb_value": float(row["hb_value"]),
+                "date": f"{year}-12-31",
+                "timestamp": int(datetime(year, 12, 31).timestamp() * 1000),
+                "notes": row.get("notes") or "",
+            }
+        )
+
+    return trends
+
+
+def write_notification_feed_to_couchbase(user_id: str, notifications: list[dict[str, Any]]) -> None:
+    if not is_couchbase_configured():
+        return
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_notification_collection()
+        doc_id = build_notification_feed_doc_id(user_id)
+        unread_total = sum(0 if item.get("read") else 1 for item in notifications)
+        collection.upsert(
+            doc_id,
+            {
+                "docType": "notification_feed",
+                "user_id": str(user_id),
+                "notifications": notifications,
+                "total": len(notifications),
+                "unread": unread_total,
+                "updated_at": utc_now_iso(),
+            },
+        )
+    except Exception as error:
+        print(f"[Modiva] Sinkronisasi notifikasi ke Couchbase gagal untuk user {user_id}: {error}")
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def sync_user_notifications_to_couchbase(user_id: str) -> None:
+    if not is_couchbase_configured():
+        return
+
+    rows = fetch_all(
+        """
+        SELECT * FROM notifications
+        WHERE user_id = %s
+        ORDER BY created_at DESC, id DESC
+        """,
+        (user_id,),
+    )
+    notifications = [notification_row_to_payload(row) for row in rows]
+    write_notification_feed_to_couchbase(str(user_id), notifications)
+
+
+def sync_all_notifications_to_couchbase() -> None:
+    if not is_couchbase_configured():
+        return
+
+    user_rows = fetch_all("SELECT DISTINCT user_id FROM notifications ORDER BY user_id ASC")
+    for user_row in user_rows:
+        user_id = str(user_row.get("user_id") or "").strip()
+        if user_id:
+            sync_user_notifications_to_couchbase(user_id)
+
+
+def write_report_feed_to_couchbase(user_id: str, reports: list[dict[str, Any]]) -> None:
+    if not is_couchbase_configured():
+        return
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_report_collection()
+        doc_id = build_report_feed_doc_id(user_id)
+        collection.upsert(
+            doc_id,
+            {
+                "docType": "report_feed",
+                "user_id": str(user_id),
+                "reports": reports,
+                "total": len(reports),
+                "updated_at": utc_now_iso(),
+            },
+        )
+    except Exception as error:
+        print(f"[Modiva] Sinkronisasi laporan ke Couchbase gagal untuk user {user_id}: {error}")
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def sync_user_reports_to_couchbase(user_id: str) -> None:
+    if not is_couchbase_configured():
+        return
+
+    user_row = fetch_one("SELECT * FROM users WHERE id = %s LIMIT 1", (user_id,))
+    rows = fetch_all(
+        """
+        SELECT * FROM reports
+        WHERE user_id = %s
+        ORDER BY created_at DESC, id DESC
+        """,
+        (user_id,),
+    )
+    reports = [report_row_to_payload(row, user_row=user_row) for row in rows]
+    write_report_feed_to_couchbase(str(user_id), reports)
+
+
+def sync_all_reports_to_couchbase() -> None:
+    if not is_couchbase_configured():
+        return
+
+    user_rows = fetch_all("SELECT DISTINCT user_id FROM reports ORDER BY user_id ASC")
+    for user_row in user_rows:
+        user_id = str(user_row.get("user_id") or "").strip()
+        if user_id:
+            sync_user_reports_to_couchbase(user_id)
+
+
+def write_school_documents_to_couchbase(schools: list[dict[str, Any]]) -> None:
+    if not is_couchbase_configured():
+        return
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_school_collection()
+        school_ids: list[str] = []
+        for school in schools:
+            school_id = str(school["id"])
+            school_ids.append(school_id)
+            collection.upsert(
+                build_school_doc_id(school_id),
+                {
+                    "docType": "school",
+                    **school,
+                    "updated_at": utc_now_iso(),
+                },
+            )
+
+        collection.upsert(
+            COUCHBASE_SCHOOL_INDEX_DOC_ID,
+            {
+                "docType": "school_index",
+                "school_ids": school_ids,
+                "total": len(school_ids),
+                "updated_at": utc_now_iso(),
+            },
+        )
+    except Exception as error:
+        print(f"[Modiva] Sinkronisasi schools ke Couchbase gagal: {error}")
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def sync_all_schools_to_couchbase() -> None:
+    if not is_couchbase_configured():
+        return
+
+    rows = fetch_all("SELECT * FROM schools ORDER BY nama ASC")
+    schools = [school_row_to_dict(row) for row in rows]
+    write_school_documents_to_couchbase(schools)
+
+
+def get_school_index_from_couchbase() -> Optional[dict[str, Any]]:
+    if not is_couchbase_configured():
+        return None
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_school_collection()
+        result = collection.get(COUCHBASE_SCHOOL_INDEX_DOC_ID)
+        return result.content_as[dict]
+    except DocumentNotFoundException:
+        return None
+    except Exception:
+        return None
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def get_school_document_from_couchbase(school_id: str) -> Optional[dict[str, Any]]:
+    if not is_couchbase_configured():
+        return None
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_school_collection()
+        result = collection.get(build_school_doc_id(school_id))
+        return result.content_as[dict]
+    except DocumentNotFoundException:
+        return None
+    except Exception:
+        return None
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def get_schools_from_couchbase(*, kota: Optional[str] = None, provinsi: Optional[str] = None) -> Optional[list[dict[str, Any]]]:
+    index_doc = get_school_index_from_couchbase()
+    if not index_doc:
+        return None
+
+    school_ids = [str(item) for item in index_doc.get("school_ids") or []]
+    schools: list[dict[str, Any]] = []
+    for school_id in school_ids:
+        document = get_school_document_from_couchbase(school_id)
+        if document:
+            schools.append(document)
+
+    if kota:
+        expected = str(kota).lower()
+        schools = [school for school in schools if expected in str(school.get("kota") or "").lower()]
+
+    if provinsi:
+        expected = str(provinsi).lower()
+        schools = [school for school in schools if expected in str(school.get("provinsi") or "").lower()]
+
+    schools.sort(key=lambda item: str(item.get("nama") or ""))
+    return schools
+
+
+def write_profile_snapshot_to_couchbase(user_id: str, payload: dict[str, Any]) -> None:
+    if not is_couchbase_configured():
+        return
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_profile_collection()
+        collection.upsert(
+            build_profile_doc_id(user_id),
+            {
+                "docType": "profile_snapshot",
+                "user_id": str(user_id),
+                "profile": payload,
+                "updated_at": utc_now_iso(),
+            },
+        )
+    except Exception as error:
+        print(f"[Modiva] Sinkronisasi profile snapshot ke Couchbase gagal untuk user {user_id}: {error}")
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def sync_user_profile_to_couchbase(user_id: str) -> None:
+    if not is_couchbase_configured():
+        return
+
+    user_row = fetch_one("SELECT * FROM users WHERE id = %s LIMIT 1", (user_id,))
+    if user_row is None:
+        return
+    payload = user_to_profile_response(user_row)
+    write_profile_snapshot_to_couchbase(str(user_id), payload)
+
+
+def sync_all_profiles_to_couchbase() -> None:
+    if not is_couchbase_configured():
+        return
+
+    user_rows = fetch_all("SELECT id FROM users ORDER BY id ASC")
+    for user_row in user_rows:
+        user_id = str(user_row.get("id") or "").strip()
+        if user_id:
+            sync_user_profile_to_couchbase(user_id)
+
+
+def get_profile_snapshot_from_couchbase(user_id: str) -> Optional[dict[str, Any]]:
+    if not is_couchbase_configured():
+        return None
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_profile_collection()
+        result = collection.get(build_profile_doc_id(user_id))
+        content = result.content_as[dict]
+        return dict(content.get("profile") or {})
+    except DocumentNotFoundException:
+        return None
+    except Exception:
+        return None
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def get_report_feed_from_couchbase(user_id: str) -> Optional[dict[str, Any]]:
+    if not is_couchbase_configured():
+        return None
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_report_collection()
+        result = collection.get(build_report_feed_doc_id(user_id))
+        content = result.content_as[dict]
+        reports = list(content.get("reports") or [])
+        return {
+            "success": True,
+            "data": reports,
+            "meta": {
+                "total": int(content.get("total") or len(reports)),
+            },
+        }
+    except DocumentNotFoundException:
+        return None
+    except Exception:
+        return None
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
+def get_notification_feed_from_couchbase(user_id: str) -> Optional[dict[str, Any]]:
+    if not is_couchbase_configured():
+        return None
+
+    cluster = None
+    try:
+        cluster, collection = get_couchbase_notification_collection()
+        result = collection.get(build_notification_feed_doc_id(user_id))
+        content = result.content_as[dict]
+        notifications = list(content.get("notifications") or [])
+        return {
+            "success": True,
+            "data": notifications,
+            "meta": {
+                "total": int(content.get("total") or len(notifications)),
+                "unread": int(content.get("unread") or 0),
+            },
+        }
+    except DocumentNotFoundException:
+        return None
+    except Exception:
+        return None
+    finally:
+        if cluster is not None:
+            cluster.close()
+
+
 def validate_runtime_config() -> None:
+    validate_couchbase_config()
+
     if APP_ENV == "production":
         if not PUBLIC_BASE_URL.startswith("https://"):
             raise RuntimeError("PUBLIC_BASE_URL wajib memakai HTTPS saat APP_ENV=production")
@@ -340,13 +642,13 @@ def ensure_tables() -> None:
                 address TEXT NULL,
                 birth_place VARCHAR(128) NULL,
                 birth_date VARCHAR(32) NULL,
-                gender VARCHAR(16) NULL,
+                gender VARCHAR(16) NOT NULL DEFAULT 'F',
                 height DOUBLE NULL,
                 weight DOUBLE NULL,
                 hb_last DOUBLE NULL,
                 consumption_count INT NOT NULL DEFAULT 0,
                 total_target INT NOT NULL DEFAULT 90,
-                role VARCHAR(32) NOT NULL DEFAULT 'siswa',
+                role VARCHAR(32) NOT NULL DEFAULT 'siswi',
                 avatar VARCHAR(255) NULL,
                 created_at DATETIME NOT NULL,
                 updated_at DATETIME NOT NULL,
@@ -402,157 +704,47 @@ def ensure_tables() -> None:
             )
             """
         )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_hb_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id VARCHAR(32) NOT NULL,
+                legacy_hb_id INT NULL UNIQUE,
+                year_label INT NOT NULL,
+                hb_value DOUBLE NOT NULL,
+                notes TEXT NULL,
+                created_at DATETIME NOT NULL,
+                updated_at DATETIME NOT NULL,
+                CONSTRAINT fk_user_hb_history_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
 
 
 def seed_database() -> None:
-    timestamp = mysql_timestamp()
-    with db_cursor(dictionary=False) as (_connection, cursor):
-        for school in SEED_SCHOOLS:
-            cursor.execute(
-                """
-                INSERT INTO schools (
-                    id, kode, nama, nama_lengkap, alamat, kota, provinsi, kode_pos,
-                    telepon, email, kepala_sekolah, akreditasi, npsn, latitude,
-                    longitude, jumlah_siswa, status, jenjang
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    nama = VALUES(nama),
-                    nama_lengkap = VALUES(nama_lengkap),
-                    alamat = VALUES(alamat),
-                    kota = VALUES(kota),
-                    provinsi = VALUES(provinsi),
-                    kode_pos = VALUES(kode_pos),
-                    telepon = VALUES(telepon),
-                    email = VALUES(email),
-                    kepala_sekolah = VALUES(kepala_sekolah),
-                    akreditasi = VALUES(akreditasi),
-                    npsn = VALUES(npsn),
-                    latitude = VALUES(latitude),
-                    longitude = VALUES(longitude),
-                    jumlah_siswa = VALUES(jumlah_siswa),
-                    status = VALUES(status),
-                    jenjang = VALUES(jenjang)
-                """,
-                (
-                    school["id"],
-                    school["kode"],
-                    school["nama"],
-                    school["nama_lengkap"],
-                    school["alamat"],
-                    school["kota"],
-                    school["provinsi"],
-                    school["kode_pos"],
-                    school["telepon"],
-                    school["email"],
-                    school["kepala_sekolah"],
-                    school["akreditasi"],
-                    school["npsn"],
-                    school["latitude"],
-                    school["longitude"],
-                    school["jumlah_siswa"],
-                    school["status"],
-                    school["jenjang"],
-                ),
-            )
+    legacy_mode = is_laragon_legacy_schema_available()
+    if legacy_mode:
+        legacy_school_count = count_table_rows("sekolah")
+        legacy_student_count = count_table_rows("siswa")
+        app_school_count = count_table_rows("schools")
+        app_user_count = count_table_rows("users")
 
-        for user in SEED_USERS:
-            cursor.execute(
-                """
-                INSERT INTO users (
-                    id, name, nisn, email, phone, school_id, school_code, address,
-                    birth_place, birth_date, gender, height, weight, hb_last,
-                    consumption_count, total_target, role, avatar, created_at, updated_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    name = VALUES(name),
-                    email = VALUES(email),
-                    phone = VALUES(phone),
-                    school_id = VALUES(school_id),
-                    school_code = VALUES(school_code),
-                    address = VALUES(address),
-                    birth_place = VALUES(birth_place),
-                    birth_date = VALUES(birth_date),
-                    gender = VALUES(gender),
-                    height = VALUES(height),
-                    weight = VALUES(weight),
-                    hb_last = VALUES(hb_last),
-                    consumption_count = VALUES(consumption_count),
-                    total_target = VALUES(total_target),
-                    role = VALUES(role)
-                """,
-                (
-                    user["id"],
-                    user["name"],
-                    user["nisn"],
-                    user["email"],
-                    user["phone"],
-                    user["school_id"],
-                    user["school_code"],
-                    user["address"],
-                    user["birth_place"],
-                    user["birth_date"],
-                    user["gender"],
-                    user["height"],
-                    user["weight"],
-                    user["hb_last"],
-                    user["consumption_count"],
-                    user["total_target"],
-                    user["role"],
-                    user["avatar"],
-                    timestamp,
-                    timestamp,
-                ),
-            )
-
-        cursor.execute("SELECT COUNT(*) AS total FROM notifications")
-        notification_count = int(cursor.fetchone()["total"])
-        if notification_count == 0:
-            for user in SEED_USERS:
-                for notification in (
-                    {
-                        "type": "reminder",
-                        "title": "Pengingat Minum Vitamin",
-                        "message": f"Halo {user['name']}, jangan lupa minum vitamin hari ini ya.",
-                        "is_read": False,
-                        "icon": "notifications",
-                        "color": "blue",
-                    },
-                    {
-                        "type": "info",
-                        "title": "Data Sekolah Aktif",
-                        "message": f"Akun kamu terhubung dengan kode sekolah {user['school_code']}.",
-                        "is_read": True,
-                        "icon": "school",
-                        "color": "yellow",
-                    },
-                ):
-                    cursor.execute(
-                        """
-                        INSERT INTO notifications (
-                            user_id, type, title, message, is_read, icon, color,
-                            action, metadata, created_at, updated_at
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        """,
-                        (
-                            user["id"],
-                            notification["type"],
-                            notification["title"],
-                            notification["message"],
-                            notification["is_read"],
-                            notification["icon"],
-                            notification["color"],
-                            None,
-                            "{}",
-                            timestamp,
-                            timestamp,
-                        ),
-                    )
+        if app_school_count < legacy_school_count or app_user_count < legacy_student_count:
+            sync_laragon_schema_to_app_tables()
+        else:
+            print("[Modiva] Tabel aplikasi sudah terisi. Bootstrap Laragon dilewati.")
+    else:
+        print(
+            "[Modiva] Schema legacy Laragon tidak ditemukan. "
+            "Backend tidak akan menambahkan seed users, schools, atau notifications otomatis."
+        )
 
 
 def init_database() -> None:
     ensure_database()
     ensure_tables()
     seed_database()
+    normalize_siswi_runtime_data()
 
 
 def normalize_db_row(row: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
@@ -578,6 +770,223 @@ def fetch_all(query: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
         cursor.execute(query, params)
         rows = cursor.fetchall()
         return [normalize_db_row(row) for row in rows]
+
+
+def count_table_rows(table_name: str) -> int:
+    result = fetch_one(f"SELECT COUNT(*) AS total FROM `{table_name}`")
+    return int((result or {}).get("total") or 0)
+
+
+def table_exists(table_name: str) -> bool:
+    result = fetch_one(
+        """
+        SELECT 1 AS ok
+        FROM information_schema.tables
+        WHERE table_schema = %s AND table_name = %s
+        LIMIT 1
+        """,
+        (MYSQL_DATABASE, table_name),
+    )
+    return bool(result)
+
+
+def table_columns(table_name: str) -> set[str]:
+    rows = fetch_all(
+        """
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = %s AND table_name = %s
+        """,
+        (MYSQL_DATABASE, table_name),
+    )
+    return {str(row["column_name"]) for row in rows}
+
+
+def normalize_siswi_runtime_data() -> None:
+    if not table_exists("users"):
+        return
+
+    execute_write(
+        """
+        UPDATE users
+        SET gender = 'F', role = 'siswi'
+        WHERE gender IS NULL
+           OR gender <> 'F'
+           OR role IS NULL
+           OR role <> 'siswi'
+        """
+    )
+
+
+def is_laragon_legacy_schema_available() -> bool:
+    return table_exists("siswa") and table_exists("sekolah")
+
+
+def parse_legacy_coordinates(value: Optional[str]) -> tuple[Optional[float], Optional[float]]:
+    raw_value = str(value or "").strip()
+    if not raw_value or "," not in raw_value:
+        return None, None
+
+    latitude_raw, longitude_raw = [segment.strip() for segment in raw_value.split(",", 1)]
+
+    try:
+        return float(latitude_raw), float(longitude_raw)
+    except ValueError:
+        return None, None
+
+
+def sync_laragon_schema_to_app_tables() -> None:
+    legacy_schools = fetch_all("SELECT * FROM sekolah ORDER BY id ASC")
+    legacy_students = fetch_all("SELECT * FROM siswa ORDER BY id ASC")
+    hb_rows = fetch_all("SELECT * FROM siswa_hb ORDER BY tahun ASC, id ASC")
+    vitamin_rows = fetch_all(
+        """
+        SELECT siswa_id, COALESCE(SUM(jumlah), 0) AS total
+        FROM distribusi_siswa
+        GROUP BY siswa_id
+        """
+    )
+
+    latest_hb_by_student: dict[str, Any] = {}
+    for row in hb_rows:
+        student_id = str(row["siswa_id"])
+        latest_hb_by_student[student_id] = row
+
+    consumption_by_student = {
+        str(row["siswa_id"]): int(row.get("total") or 0)
+        for row in vitamin_rows
+    }
+
+    timestamp = mysql_timestamp()
+
+    with db_cursor(dictionary=False) as (_connection, cursor):
+        for school in legacy_schools:
+            latitude, longitude = parse_legacy_coordinates(school.get("gps_koordinat"))
+            cursor.execute(
+                """
+                INSERT INTO schools (
+                    id, kode, nama, nama_lengkap, alamat, kota, provinsi, kode_pos,
+                    telepon, email, kepala_sekolah, akreditasi, npsn, latitude,
+                    longitude, jumlah_siswa, status, jenjang
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    kode = VALUES(kode),
+                    nama = VALUES(nama),
+                    nama_lengkap = VALUES(nama_lengkap),
+                    alamat = VALUES(alamat),
+                    kota = VALUES(kota),
+                    provinsi = VALUES(provinsi),
+                    kode_pos = VALUES(kode_pos),
+                    telepon = VALUES(telepon),
+                    email = VALUES(email),
+                    kepala_sekolah = VALUES(kepala_sekolah),
+                    akreditasi = VALUES(akreditasi),
+                    npsn = VALUES(npsn),
+                    latitude = VALUES(latitude),
+                    longitude = VALUES(longitude),
+                    jumlah_siswa = VALUES(jumlah_siswa),
+                    status = VALUES(status),
+                    jenjang = VALUES(jenjang)
+                """,
+                (
+                    str(school["id"]),
+                    school["kode"],
+                    school["nama"],
+                    school["nama"],
+                    school.get("alamat"),
+                    None,
+                    None,
+                    None,
+                    school.get("telepon"),
+                    school.get("email"),
+                    None,
+                    None,
+                    None,
+                    latitude,
+                    longitude,
+                    0,
+                    "Aktif" if bool(school.get("status")) else "Nonaktif",
+                    school.get("jenjang"),
+                ),
+            )
+
+        for student in legacy_students:
+            student_id = str(student["id"])
+            school = next((item for item in legacy_schools if str(item["id"]) == str(student["sekolah_id"])), None)
+            latest_hb = latest_hb_by_student.get(student_id)
+            cursor.execute(
+                """
+                INSERT INTO users (
+                    id, name, nisn, email, phone, school_id, school_code, address,
+                    birth_place, birth_date, gender, height, weight, hb_last,
+                    consumption_count, total_target, role, avatar, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name),
+                    email = VALUES(email),
+                    phone = VALUES(phone),
+                    school_id = VALUES(school_id),
+                    school_code = VALUES(school_code),
+                    address = VALUES(address),
+                    birth_place = VALUES(birth_place),
+                    birth_date = VALUES(birth_date),
+                    gender = VALUES(gender),
+                    height = VALUES(height),
+                    weight = VALUES(weight),
+                    hb_last = VALUES(hb_last),
+                    consumption_count = VALUES(consumption_count),
+                    total_target = VALUES(total_target),
+                    role = VALUES(role),
+                    updated_at = VALUES(updated_at)
+                """,
+                (
+                    student_id,
+                    student["nama"],
+                    student["nis"],
+                    student.get("email"),
+                    None,
+                    str(student["sekolah_id"]),
+                    school.get("kode") if school else None,
+                    None,
+                    student.get("tmp_lahir"),
+                    student.get("tgl_lahir"),
+                    "F",
+                    student.get("tinggi_badan"),
+                    student.get("berat_badan"),
+                    float(latest_hb["hb"]) if latest_hb and latest_hb.get("hb") is not None else None,
+                    consumption_by_student.get(student_id, 0),
+                    0,
+                    "siswi",
+                    None,
+                    student.get("created_at") or timestamp,
+                    student.get("updated_at") or timestamp,
+                ),
+            )
+
+        for row in hb_rows:
+            timestamp_value = row.get("created_at") or row.get("updated_at") or timestamp
+            cursor.execute(
+                """
+                INSERT INTO user_hb_history (
+                    user_id, legacy_hb_id, year_label, hb_value, notes, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    user_id = VALUES(user_id),
+                    year_label = VALUES(year_label),
+                    hb_value = VALUES(hb_value),
+                    notes = VALUES(notes),
+                    updated_at = VALUES(updated_at)
+                """,
+                (
+                    str(row["siswa_id"]),
+                    int(row["id"]),
+                    int(row["tahun"]),
+                    float(row["hb"]),
+                    row.get("keterangan"),
+                    timestamp_value,
+                    row.get("updated_at") or timestamp,
+                ),
+            )
 
 
 def execute_write(query: str, params: tuple[Any, ...] = ()) -> int:
@@ -664,7 +1073,7 @@ def user_to_payload(user_row: dict[str, Any], request: Optional[Request] = None)
         "school": school_name,
         "schoolId": user_row["school_id"],
         "schoolCode": user_row["school_code"],
-        "role": user_row.get("role") or "siswa",
+        "role": user_row.get("role") or "siswi",
         "email": user_row.get("email"),
         "phone": user_row.get("phone"),
         "address": user_row.get("address"),
@@ -701,7 +1110,7 @@ def user_to_profile_response(user_row: dict[str, Any], request: Optional[Request
         "height": user_row.get("height"),
         "weight": user_row.get("weight"),
         "avatar": resolve_media_url(request, user_row.get("avatar")),
-        "role": user_row.get("role") or "siswa",
+        "role": user_row.get("role") or "siswi",
         "hb_last": user_row.get("hb_last"),
         "consumption_count": user_row.get("consumption_count"),
         "total_target": user_row.get("total_target"),
@@ -789,13 +1198,21 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup() -> None:
     validate_runtime_config()
-    init_database()
-    check_database_connection()
+    try:
+        init_database()
+        check_database_connection()
+    except pymysql.MySQLError as error:
+        print(f"[Modiva] MySQL belum siap: {error}")
 
 
 @app.get("/health")
 def healthcheck() -> dict[str, Any]:
-    database_status = check_database_connection()
+    database_error = None
+    try:
+        database_status = check_database_connection()
+    except pymysql.MySQLError as error:
+        database_status = {"ok": False}
+        database_error = str(error)
     return {
         "success": True,
         "message": "Backend aktif",
@@ -807,6 +1224,7 @@ def healthcheck() -> dict[str, Any]:
             "port": MYSQL_PORT,
             "name": MYSQL_DATABASE,
             "status": "connected" if database_status["ok"] else "error",
+            "error": database_error,
         },
     }
 
@@ -826,6 +1244,7 @@ def login_siswa(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     submitted_nisn = str(payload.get("nisn") or payload.get("nis") or "").strip()
     submitted_school = str(
         payload.get("schoolCode")
+        or payload.get("kode_sekolah")
         or payload.get("school_code")
         or payload.get("schoolId")
         or payload.get("school_id")
@@ -852,6 +1271,26 @@ def login_siswa(payload: dict[str, Any], request: Request) -> dict[str, Any]:
         "token": token,
         "refreshToken": refresh_token,
         "user": user_to_payload(user, request),
+    }
+
+
+@app.post("/api/login")
+def login_siswa_backend_modiva(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+    response = login_siswa(payload, request)
+    user = response["user"]
+    return {
+        "success": True,
+        "message": "Login berhasil",
+        "access": response["token"],
+        "token": response["token"],
+        "refreshToken": response["refreshToken"],
+        "data": {
+            "siswa_id": user["id"],
+            "nis": user["nisn"],
+            "nama": user["name"],
+            "sekolah": user["school"],
+        },
+        "user": user,
     }
 
 
@@ -929,7 +1368,7 @@ def change_password(payload: dict[str, Any], authorization: Optional[str] = Head
 @app.get("/api/users/profile")
 def get_profile(request: Request, authorization: Optional[str] = Header(default=None)) -> dict[str, Any]:
     user = get_current_user(authorization)
-    return {"success": True, "data": user_to_profile_response(user, request)}
+    return {"success": True, "data": user_to_profile_response(user, request), "meta": {"source": "mysql"}}
 
 
 @app.put("/api/users/profile")
@@ -986,11 +1425,56 @@ def update_profile(
 
     execute_write(f"UPDATE users SET {', '.join(assignments)} WHERE id = %s", tuple(values))
     refreshed_user = fetch_one("SELECT * FROM users WHERE id = %s LIMIT 1", (user["id"],))
+    sync_user_profile_to_couchbase(str(user["id"]))
     return {
         "success": True,
         "message": "Profile updated successfully",
         "data": user_to_profile_response(refreshed_user or user, request),
     }
+
+
+@app.get("/api/siswa/profile")
+def get_siswa_profile_backend_modiva(
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    profile = user_to_profile_response(user, request)
+    return {
+        "message": "Data profil berhasil diambil",
+        "data": {
+            "id": profile["id"],
+            "nis": profile["nisn"],
+            "nama": profile["name"],
+            "email": profile["email"],
+            "tmp_lahir": profile["birth_place"],
+            "tgl_lahir": profile["birth_date"],
+            "gender": profile["gender"],
+            "tinggi_badan": profile["height"],
+            "berat_badan": profile["weight"],
+            "sekolah": profile["school"],
+        },
+    }
+
+
+@app.put("/api/siswa/edit-profile")
+def edit_siswa_profile_backend_modiva(
+    payload: dict[str, Any],
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+) -> dict[str, Any]:
+    mapped_payload = {
+        "name": payload.get("nama"),
+        "email": payload.get("email"),
+        "birthPlace": payload.get("tmp_lahir"),
+        "birthDate": payload.get("tgl_lahir"),
+        "gender": payload.get("gender"),
+        "height": payload.get("tinggi_badan"),
+        "weight": payload.get("berat_badan"),
+    }
+    mapped_payload = {key: value for key, value in mapped_payload.items() if value is not None}
+    update_profile(request, mapped_payload, authorization)
+    return {"message": "Profil berhasil diperbarui"}
 
 
 @app.post("/api/users/profile/avatar")
@@ -1013,6 +1497,7 @@ async def upload_avatar(
         (stored_filename, updated_at, user["id"]),
     )
     await remove_uploaded_file_if_unused(previous_avatar)
+    sync_user_profile_to_couchbase(str(user["id"]))
 
     return {
         "success": True,
@@ -1036,6 +1521,7 @@ async def delete_avatar(
         (updated_at, user["id"]),
     )
     await remove_uploaded_file_if_unused(previous_avatar)
+    sync_user_profile_to_couchbase(str(user["id"]))
     return {
         "success": True,
         "message": "Avatar deleted successfully",
@@ -1088,17 +1574,20 @@ async def submit_report(
                 created_at,
             ),
         )
-        execute_write(
-            """
-            UPDATE users
-            SET consumption_count = COALESCE(consumption_count, 0) + 1, updated_at = %s
-            WHERE id = %s
-            """,
-            (created_at, user["id"]),
-        )
+        if not is_laragon_legacy_schema_available():
+            execute_write(
+                """
+                UPDATE users
+                SET consumption_count = COALESCE(consumption_count, 0) + 1, updated_at = %s
+                WHERE id = %s
+                """,
+                (created_at, user["id"]),
+            )
     except Exception:
         await remove_uploaded_file_if_unused(stored_filename)
         raise
+
+    sync_user_reports_to_couchbase(str(user["id"]))
 
     return {
         "success": True,
@@ -1112,6 +1601,80 @@ async def submit_report(
     }
 
 
+@app.post("/api/ttd")
+async def submit_ttd_backend_modiva(
+    request: Request,
+    distribusi_id: int = Form(...),
+    tanggal_konsumsi: str = Form(...),
+    keterangan: str = Form(default=""),
+    file: UploadFile = File(...),
+    authorization: Optional[str] = Header(default=None),
+) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    try:
+        datetime.strptime(tanggal_konsumsi, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Format tanggal harus YYYY-MM-DD")
+
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="File bukti konsumsi wajib diupload")
+    extension = Path(file.filename).suffix.lower().lstrip(".")
+    if extension not in {"jpg", "jpeg", "png"}:
+        raise HTTPException(status_code=400, detail="Format file harus JPG, JPEG, atau PNG")
+
+    stored_filename, photo_size = await save_upload_file(file)
+    created_at = mysql_timestamp()
+
+    try:
+        execute_insert(
+            """
+            INSERT INTO reports (
+                user_id, report_date, notes, photo_filename, photo_original_name,
+                photo_mime_type, photo_size, created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                user["id"],
+                tanggal_konsumsi,
+                keterangan,
+                stored_filename,
+                file.filename,
+                file.content_type or "image/jpeg",
+                photo_size,
+                created_at,
+                created_at,
+            ),
+        )
+
+        if table_exists("distribusi_siswa"):
+            columns = table_columns("distribusi_siswa")
+            assignments: list[str] = []
+            values: list[Any] = []
+            update_values = {
+                "tanggal_konsumsi": tanggal_konsumsi,
+                "bukti_foto": stored_filename,
+                "keterangan": keterangan,
+                "status_konsumsi": "sudah",
+                "updated_at": created_at,
+            }
+            for column, value in update_values.items():
+                if column in columns:
+                    assignments.append(f"{column} = %s")
+                    values.append(value)
+            if assignments:
+                values.extend([distribusi_id, user["nisn"]])
+                execute_write(
+                    f"UPDATE distribusi_siswa SET {', '.join(assignments)} WHERE id = %s AND nis = %s",
+                    tuple(values),
+                )
+    except Exception:
+        await remove_uploaded_file_if_unused(stored_filename)
+        raise
+
+    sync_user_reports_to_couchbase(str(user["id"]))
+    return {"message": "Laporan konsumsi berhasil disimpan", "file": stored_filename}
+
+
 @app.get("/api/reports")
 def get_reports(
     request: Request,
@@ -1121,6 +1684,8 @@ def get_reports(
 ) -> dict[str, Any]:
     user = get_current_user(authorization)
     offset = (page - 1) * limit
+    hb_trends = build_app_hb_trends(str(user["id"]))
+
     reports = fetch_all(
         """
         SELECT * FROM reports
@@ -1136,7 +1701,7 @@ def get_reports(
     return {
         "success": True,
         "data": {
-            "hb_trends": [(user.get("hb_last") or 12.0) for _ in reports],
+            "hb_trends": hb_trends,
             "consumption_rate": total_reports,
             "total_count": total_reports,
             "reports": [
@@ -1144,7 +1709,7 @@ def get_reports(
                     "id": row["id"],
                     "user_id": row["user_id"],
                     "date": row["report_date"],
-                    "hb_value": user.get("hb_last") or 12.0,
+                    "hb_value": None,
                     "status": "Selesai",
                     "photo_url": build_upload_url(request, row.get("photo_filename")),
                     "notes": row.get("notes") or "",
@@ -1159,6 +1724,7 @@ def get_reports(
             "page": page,
             "limit": limit,
             "total": total_reports,
+            "source": "mysql",
         },
     }
 
@@ -1184,10 +1750,95 @@ def get_report_by_id(
             "date": row["report_date"],
             "photo_url": build_upload_url(request, row.get("photo_filename")),
             "notes": row.get("notes") or "",
-            "hb_value": user.get("hb_last") or 12.0,
+            "hb_value": None,
             "status": "Selesai",
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
+        },
+    }
+
+
+@app.get("/api/siswa/hb")
+def get_siswa_hb_backend_modiva(authorization: Optional[str] = Header(default=None)) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    rows = fetch_all(
+        """
+        SELECT year_label, hb_value, notes
+        FROM user_hb_history
+        WHERE user_id = %s
+        ORDER BY year_label ASC, id ASC
+        """,
+        (user["id"],),
+    )
+    return {
+        "message": "Data HB berhasil diambil",
+        "data": [
+            {
+                "tahun": row["year_label"],
+                "hb": float(row["hb_value"]) if row.get("hb_value") is not None else None,
+                "keterangan": row.get("notes"),
+            }
+            for row in rows
+        ],
+    }
+
+
+@app.get("/api/riwayat-konsumsi")
+def get_riwayat_konsumsi_backend_modiva(authorization: Optional[str] = Header(default=None)) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    rows = fetch_all(
+        """
+        SELECT id, report_date, notes, photo_filename, created_at
+        FROM reports
+        WHERE user_id = %s
+        ORDER BY created_at DESC, id DESC
+        """,
+        (user["id"],),
+    )
+    data = [
+        {
+            "id": row["id"],
+            "tgl_terima": row["created_at"],
+            "tanggal_konsumsi": row["report_date"],
+            "jumlah": 1,
+            "status_konsumsi": "sudah",
+            "bukti_foto": row["photo_filename"],
+            "keterangan": row.get("notes") or "",
+        }
+        for row in rows
+    ]
+    return {"message": "Riwayat konsumsi berhasil diambil", "total": len(data), "data": data}
+
+
+@app.get("/api/riwayat-konsumsi/{report_id}")
+def get_detail_riwayat_konsumsi_backend_modiva(
+    report_id: int,
+    authorization: Optional[str] = Header(default=None),
+) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    row = fetch_one(
+        """
+        SELECT id, user_id, report_date, notes, photo_filename, created_at
+        FROM reports
+        WHERE id = %s AND user_id = %s
+        LIMIT 1
+        """,
+        (report_id, user["id"]),
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="Riwayat tidak ditemukan")
+    return {
+        "message": "Detail riwayat berhasil diambil",
+        "data": {
+            "id": row["id"],
+            "nis": user["nisn"],
+            "nama_siswa": user["name"],
+            "tgl_terima": row["created_at"],
+            "tanggal_konsumsi": row["report_date"],
+            "jumlah": 1,
+            "status_konsumsi": "sudah",
+            "bukti_foto": row["photo_filename"],
+            "keterangan": row.get("notes") or "",
         },
     }
 
@@ -1200,6 +1851,7 @@ def get_notifications(
 ) -> dict[str, Any]:
     user = get_current_user(authorization)
     offset = (page - 1) * limit
+
     notifications = fetch_all(
         """
         SELECT * FROM notifications
@@ -1239,6 +1891,7 @@ def get_notifications(
             "unread": unread_total,
             "page": page,
             "limit": limit,
+            "source": "mysql",
         },
     }
 
@@ -1249,16 +1902,18 @@ def mark_notification_read(
     authorization: Optional[str] = Header(default=None),
 ) -> dict[str, Any]:
     user = get_current_user(authorization)
+    updated_at = mysql_timestamp()
     updated = execute_write(
         """
         UPDATE notifications
         SET is_read = TRUE, updated_at = %s
         WHERE id = %s AND user_id = %s
         """,
-        (mysql_timestamp(), notification_id, user["id"]),
+        (updated_at, notification_id, user["id"]),
     )
     if updated == 0:
         raise HTTPException(status_code=404, detail="Notifikasi tidak ditemukan")
+    sync_user_notifications_to_couchbase(str(user["id"]))
     return {"success": True, "message": "Notification marked as read"}
 
 
@@ -1269,6 +1924,7 @@ def mark_all_notifications_read(authorization: Optional[str] = Header(default=No
         "UPDATE notifications SET is_read = TRUE, updated_at = %s WHERE user_id = %s",
         (mysql_timestamp(), user["id"]),
     )
+    sync_user_notifications_to_couchbase(str(user["id"]))
     return {"success": True, "message": "All notifications marked as read"}
 
 
@@ -1284,6 +1940,7 @@ def delete_notification(
     )
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Notifikasi tidak ditemukan")
+    sync_user_notifications_to_couchbase(str(user["id"]))
     return {"success": True, "message": "Notification deleted"}
 
 
@@ -1304,7 +1961,23 @@ def get_schools(
 
     rows = fetch_all(query, tuple(params))
     data = [school_row_to_dict(row) for row in rows]
-    return {"success": True, "data": data, "meta": {"total": len(data)}}
+    return {"success": True, "data": data, "meta": {"total": len(data), "source": "mysql"}}
+
+
+@app.get("/api/sekolah/lokasi")
+def get_lokasi_sekolah_backend_modiva(authorization: Optional[str] = Header(default=None)) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    row = get_school_row(school_id=user["school_id"], school_code=user["school_code"])
+    if row is None:
+        raise HTTPException(status_code=404, detail="Data sekolah tidak ditemukan")
+    gps_koordinat = None
+    if row.get("latitude") is not None and row.get("longitude") is not None:
+        gps_koordinat = f"{row['latitude']},{row['longitude']}"
+    return {
+        "nama_sekolah": row["nama"],
+        "alamat": row.get("alamat"),
+        "gps_koordinat": gps_koordinat,
+    }
 
 
 @app.get("/api/schools/{school_id}")
@@ -1314,7 +1987,7 @@ def get_school_by_id(school_id: str) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="Sekolah tidak ditemukan")
     payload = school_row_to_dict(row)
     payload["siswa"] = []
-    return {"success": True, "data": payload}
+    return {"success": True, "data": payload, "meta": {"source": "mysql"}}
 
 
 @app.get("/api/schools/{school_id}/location")
@@ -1334,6 +2007,7 @@ def get_school_location(school_id: str) -> dict[str, Any]:
             "maps_url": f"https://www.google.com/maps?q={row['latitude']},{row['longitude']}",
             "embed_url": f"https://maps.google.com/maps?q={row['latitude']},{row['longitude']}&z=16&output=embed",
         },
+        "meta": {"source": "mysql"},
     }
 
 

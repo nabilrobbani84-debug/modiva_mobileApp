@@ -49,25 +49,12 @@ cp .env.production.example .env.production
 Lalu edit `.env.production`:
 
 - `PUBLIC_BASE_URL=https://api.domain-kamu`
+- `PUBLIC_HOSTNAME=api.domain-kamu`
 - `CORS_ALLOW_ORIGINS=https://app.domain-kamu`
 - `MYSQL_ROOT_PASSWORD`
 - `MYSQL_PASSWORD`
 
-## 4. Edit domain reverse proxy
-
-Edit file `deploy/Caddyfile` dan ganti:
-
-```text
-api.modiva.id
-```
-
-menjadi domain backend produksi kamu, misalnya:
-
-```text
-api.example.com
-```
-
-## 5. Buka firewall VPS
+## 4. Buka firewall VPS
 
 ```bash
 sudo ufw allow OpenSSH
@@ -76,13 +63,13 @@ sudo ufw allow 443/tcp
 sudo ufw enable
 ```
 
-## 6. Jalankan stack produksi
+## 5. Jalankan stack produksi
 
 ```bash
 docker compose -f docker-compose.vps.yml --env-file .env.production up -d --build
 ```
 
-## 7. Verifikasi backend
+## 6. Verifikasi backend
 
 ```bash
 docker compose -f docker-compose.vps.yml ps
@@ -104,7 +91,7 @@ Respon sehat yang diharapkan:
 }
 ```
 
-## 8. Set env mobile production
+## 7. Set env mobile production
 
 Di root project mobile:
 
@@ -118,7 +105,7 @@ Lalu validasi:
 npm run validate:production-env
 ```
 
-## 9. Build APK final
+## 8. Build APK final
 
 Setelah backend publik sehat, build APK release baru dari project mobile agar mengarah ke server nyata.
 

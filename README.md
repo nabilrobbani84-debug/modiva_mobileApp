@@ -46,6 +46,8 @@ To learn more about developing your project with Expo, look at the following res
 
 Repo ini sekarang juga punya backend FastAPI di [backend/README.md](C:\project\mobile-app-modiva\mobile_tester\backend\README.md) untuk login, profile, upload avatar, notifikasi, sekolah, dan upload bukti vitamin dengan penyimpanan **MySQL**.
 
+Mapping tabel final backend juga sudah didokumentasikan di [backend/README.md](C:\project\mobile-app-modiva\mobile_tester\backend\README.md), termasuk relasi antara schema legacy Laragon dan tabel aplikasi runtime.
+
 Jalankan backend:
 
 ```bash
@@ -88,11 +90,17 @@ Untuk build app ke server publik:
 1. Deploy FastAPI ke domain HTTPS publik.
 2. Siapkan MySQL produksi dan isi env `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
 3. Isi `PUBLIC_BASE_URL` dan `CORS_ALLOW_ORIGINS` di backend.
-4. Set `EXPO_PUBLIC_API_URL` ke domain backend publik sebelum build APK/IPA.
+4. Salin [.env.production.example](C:\project\mobile-app-modiva\mobile_tester\.env.production.example) menjadi `.env.production` lalu isi `EXPO_PUBLIC_API_URL` dengan domain backend publik.
 5. Jalankan validasi:
 
 ```bash
 npm run validate:production-env
+```
+
+6. Build APK production hanya lewat script berikut agar validasi selalu dijalankan lebih dulu:
+
+```bash
+npm run build:android:production
 ```
 
 Catatan penting:
@@ -102,6 +110,7 @@ Catatan penting:
 - jika `EXPO_PUBLIC_API_URL` belum valid, build tetap bisa jalan tetapi akan ditandai belum siap produksi di aplikasi
 - Android production sekarang dipaksa HTTPS-only (`usesCleartextTraffic: false`)
 - paket deploy VPS siap dipakai di [backend/deploy/VPS_DEPLOY.md](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\VPS_DEPLOY.md)
+- build production final tidak boleh memakai IP lokal seperti `192.168.x.x`; validator akan otomatis menolak konfigurasi itu
 
 ## Scrum workflow
 

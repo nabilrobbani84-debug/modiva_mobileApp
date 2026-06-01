@@ -1,5 +1,4 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -12,21 +11,13 @@ import { AppConfig } from '../src/config/app.config';
 // Import AuthProvider dari state management Anda
 import { NotificationController } from '../src/controllers/notification.controller';
 import { AuthProvider, useAuth } from '../src/state/AuthContext';
+import { configureNativeNotificationHandler } from '../src/utils/helpers/nativeNotificationHelpers';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-// Configure Notification Handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+configureNativeNotificationHandler();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

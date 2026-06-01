@@ -2,9 +2,13 @@ import urllib.request
 import urllib.parse
 import json
 import uuid
+import os
 
 # Login
-data = json.dumps({"nisn": "0110222079", "schoolCode": "SMPN1JKT"}).encode("utf-8")
+TEST_NISN = os.environ.get("MODIVA_TEST_NISN", "10001")
+TEST_SCHOOL_CODE = os.environ.get("MODIVA_TEST_SCHOOL_CODE", "20223819")
+
+data = json.dumps({"nisn": TEST_NISN, "schoolCode": TEST_SCHOOL_CODE}).encode("utf-8")
 req_login = urllib.request.Request("http://127.0.0.1:8000/api/auth/login-siswa", data=data, headers={"Content-Type": "application/json"})
 token = json.loads(urllib.request.urlopen(req_login).read().decode())["token"]
 headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}

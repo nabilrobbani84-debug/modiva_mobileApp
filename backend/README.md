@@ -2,6 +2,21 @@
 
 Backend FastAPI untuk menerima login siswa, profile, upload avatar, upload bukti vitamin, notifikasi, dan data sekolah dari app mobile lalu menyimpannya ke MySQL.
 
+Saat ini backend aktif memakai arsitektur yang lebih sederhana:
+
+- `server API`: FastAPI
+- `database utama`: MySQL
+- tidak ada dependency runtime ke Couchbase
+
+Untuk environment lokal, backend sekarang disiapkan agar cocok dengan MySQL Laragon default:
+
+- host: `127.0.0.1`
+- port: `3306`
+- user: `root`
+- password: kosong
+
+Jika database `modiva` di Laragon sudah memiliki schema asli seperti `siswa`, `sekolah`, `siswa_hb`, dan `distribusi_siswa`, backend akan menyinkronkan data itu ke tabel support aplikasi agar tampilan mobile tetap cocok dengan isi database Laragon.
+
 ## Jalankan Lokal
 
 Isi environment berikut:
@@ -60,13 +75,15 @@ Gateway Hono akan aktif di `http://127.0.0.1:8787` dan meneruskan `/api/*` serta
 - `GET /api/schools/{id}`
 - `GET /api/schools/{id}/location`
 
-## Akun Seed
+## Data Awal
 
-Beberapa akun siswa awal akan otomatis dibuat di MySQL saat startup pertama:
+Backend sekarang tidak lagi menambahkan data seed otomatis ke MySQL.
 
-- NISN `10001` dengan kode sekolah `20223819`
-- NISN `10002` dengan kode sekolah `20223819`
-- NISN `0110222079` dengan kode sekolah `SMPN1JKT`
+Perilakunya:
+
+- jika schema legacy Laragon seperti `siswa` dan `sekolah` ada, backend akan menyinkronkan data yang memang sudah ada di sana ke tabel aplikasi
+- jika schema legacy tidak ada, backend hanya memastikan tabel aplikasi tersedia
+- backend tidak akan membuat `users`, `schools`, atau `notifications` contoh sendiri
 
 ## Penyimpanan
 
@@ -74,6 +91,55 @@ Beberapa akun siswa awal akan otomatis dibuat di MySQL saat startup pertama:
 - File upload: `backend/uploads/`
 
 Saat user upload avatar baru atau menghapus avatar, backend akan membersihkan file avatar lama yang sudah tidak direferensikan lagi.
+
+## Mapping Tabel Final
+
+Bagian ini menjelaskan tabel mana yang dipakai tiap fitur setelah sinkronisasi dari schema Laragon.
+
+### Tabel aplikasi yang dipakai runtime API
+
+- `users`
+  - dipakai untuk login siswa, profile user, informasi vitamin, `hb_last`, dan progres konsumsi
+- `reports`
+  - dipakai untuk riwayat laporan konsumsi vitamin yang dikirim dari APK
+- `schools`
+  - dipakai untuk daftar sekolah, detail sekolah, dan lokasi sekolah
+- `notifications`
+  - dipakai untuk daftar notifikasi user
+- `sessions`
+  - dipakai untuk token login/session aktif
+- `user_hb_history`
+  - dipakai untuk grafik/tren hemoglobin di aplikasi
+
+### Sumber legacy Laragon yang disinkronkan
+
+Jika tabel legacy Laragon tersedia, backend akan membaca dari tabel berikut lalu menyalinnya ke tabel aplikasi:
+
+- `siswa` -> `users`
+- `sekolah` -> `schools`
+- `siswa_hb` -> `user_hb_history`
+- `distribusi_siswa` -> `users.consumption_count`
+
+### Ringkasan fitur ke tabel
+
+- Login siswa:
+  - runtime baca `users`
+- Informasi Vitamin:
+  - runtime baca `users.consumption_count` dan `users.total_target`
+- Tren Hemoglobin:
+  - runtime baca `user_hb_history`
+- Riwayat laporan konsumsi:
+  - runtime baca/tulis `reports`
+- Sekolah:
+  - runtime baca `schools`
+- Notifikasi:
+  - runtime baca/tulis `notifications`
+
+### Catatan penting
+
+- runtime API sekarang diusahakan membaca dari tabel aplikasi, bukan query langsung ke tabel legacy
+- tabel legacy Laragon berperan sebagai sumber sinkronisasi awal, bukan target utama request mobile
+- kalau data tidak ada di MySQL, backend tidak akan mengarang data contoh otomatis
 
 ## Siap Deploy
 
@@ -97,6 +163,8 @@ cd backend
 cp .env.production.example .env.production
 docker compose -f docker-compose.vps.yml --env-file .env.production up -d --build
 ```
+
+Isi `PUBLIC_HOSTNAME` dan `PUBLIC_BASE_URL` di `.env.production` dengan domain backend publik kamu, misalnya `api.modiva.id`.
 
 Panduan lengkap VPS ada di [deploy/VPS_DEPLOY.md](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\VPS_DEPLOY.md).
 

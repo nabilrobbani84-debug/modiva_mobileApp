@@ -33,11 +33,28 @@ body:
         - Low
     validations:
       required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Initial Status
+      options:
+        - Todo
+        - In Progress
+        - Blocked
+        - Review
+        - Done
+    validations:
+      required: true
   - type: input
     id: estimate
     attributes:
       label: Story Point Estimate
       placeholder: "3"
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies / Risks
+      placeholder: Environment, data uji, backend, APK, stakeholder, atau risiko utama.
   - type: textarea
     id: notes
     attributes:
