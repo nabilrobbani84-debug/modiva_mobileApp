@@ -88,6 +88,50 @@ export default function SekolahScreen() {
               </Text>
             </View>
 
+            {school?.npsn ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>NPSN</Text>
+                <Text style={styles.infoValue}>{school.npsn}</Text>
+              </View>
+            ) : null}
+
+            {school?.kepala_sekolah ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Kepala Sekolah</Text>
+                <Text style={styles.infoValue}>{school.kepala_sekolah}</Text>
+              </View>
+            ) : null}
+
+            {school?.akreditasi ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Akreditasi</Text>
+                <Text style={styles.infoValue}>{school.akreditasi}</Text>
+              </View>
+            ) : null}
+
+            {school?.jenjang ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Jenjang / Status</Text>
+                <Text style={styles.infoValue}>
+                  {school.jenjang} {school.status ? `(${school.status})` : ''}
+                </Text>
+              </View>
+            ) : null}
+
+            {school?.telepon ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Telepon</Text>
+                <Text style={styles.infoValue}>{school.telepon}</Text>
+              </View>
+            ) : null}
+
+            {school?.email ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoValue}>{school.email}</Text>
+              </View>
+            ) : null}
+
             <TouchableOpacity
               style={[styles.mapButton, !hasCoordinates && styles.mapButtonDisabled]}
               onPress={() => openMaps(school)}

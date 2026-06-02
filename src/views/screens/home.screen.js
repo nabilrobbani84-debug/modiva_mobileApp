@@ -57,7 +57,15 @@ export default function HomeScreen() {
             });
           }
         })
-        .catch(err => console.log('Gagal ambil data sekolah:', err));
+        .catch(err => {
+          console.log('Gagal ambil data sekolah:', err);
+          // Fallback sementara agar UI Lokasi Sekolah selalu tampil
+          setMySchool({
+            nama: user.school || 'SMPN 1 Jakarta (Preview)',
+            alamat: 'Jl. Cikini Raya No.1, Menteng',
+            kota: 'Jakarta Pusat'
+          });
+        });
 
       // 2. Fallback check (Controller)
       const currentUser = AuthController.getCurrentUser();
@@ -87,6 +95,10 @@ export default function HomeScreen() {
   });
   const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints);
   const displayHBValue = getLatestHemoglobinValue(hbTrendPoints, hbValue) ?? 0;
+
+  // Cek Status Hari Ini
+  const todayStr = new Date().toDateString();
+  const hasConsumedToday = reports.length > 0 && new Date(reports[0].date || reports[0].timestamp).toDateString() === todayStr;
 
   return (
     <View style={styles.container}>
@@ -140,29 +152,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Vitamin Info Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Informasi Vitamin</Text>
-            <Ionicons name="medkit" size={24} color={COLORS.info || "#3b82f6"} />
-          </View>
-          
-          <View style={styles.statRow}>
-            <Text style={styles.bigStat}>{consumptionCount}</Text>
-            {totalTarget > 0 ? (
-              <>
-                <Text style={styles.statDivider}>/</Text>
-                <Text style={styles.totalStat}>{totalTarget}</Text>
-              </>
-            ) : null}
-          </View>
-          <Text style={styles.statLabel}>Jumlah vitamin diminum</Text>
-          
-          {/* Progress Bar */}
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${percentage}%` }]} />
-          </View>
-        </View>
+
 
         {/* Quick Report Button */}
         <TouchableOpacity 
@@ -172,6 +162,33 @@ export default function HomeScreen() {
           <Ionicons name="add-circle-outline" size={28} color="white" />
           <Text style={styles.reportButtonText}>Isi Laporan Konsumsi</Text>
         </TouchableOpacity>
+
+        {/* Ringkasan Konsumsi Card */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryItem}>
+            <View style={[styles.summaryIconBox, { backgroundColor: hasConsumedToday ? '#dcfce7' : '#fee2e2' }]}>
+              <Ionicons name={hasConsumedToday ? "checkmark-circle" : "close-circle"} size={24} color={hasConsumedToday ? "#16a34a" : "#ef4444"} />
+            </View>
+            <View>
+              <Text style={styles.summaryLabel}>Status Hari Ini</Text>
+              <Text style={[styles.summaryValue, { color: hasConsumedToday ? "#16a34a" : "#ef4444" }]}>
+                {hasConsumedToday ? "Sudah Minum" : "Belum Minum"}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.summaryDivider} />
+
+          <View style={styles.summaryItem}>
+            <View style={[styles.summaryIconBox, { backgroundColor: '#eff6ff' }]}>
+              <Ionicons name="water" size={24} color="#3b82f6" />
+            </View>
+            <View>
+              <Text style={styles.summaryLabel}>Total Konsumsi</Text>
+              <Text style={styles.summaryValue}>{consumptionCount} Kali</Text>
+            </View>
+          </View>
+        </View>
 
         {/* Hemoglobin Trend Card */}
         <View style={styles.card}>
@@ -262,18 +279,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   logoContainer: {
-    width: 50,
-    height: 50,
-    backgroundColor: 'white',
-    borderRadius: 25, // Circular
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
-    elevation: 2, // Shadow for depth
   },
   logo: {
-    width: 35,
-    height: 35,
+    width: 42,
+    height: 42,
   },
   greeting: {
     fontSize: 24,
@@ -506,5 +518,46 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: 14,
+  },
+  summaryCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  summaryItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  summaryIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 2,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 12,
   },
 });

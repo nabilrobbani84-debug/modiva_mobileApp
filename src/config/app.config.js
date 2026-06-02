@@ -11,8 +11,19 @@ const expoExtra = Constants.expoConfig?.extra || Constants.manifest2?.extra || {
 const PRIVATE_API_HOST_PATTERN = /\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+)/i;
 
 const getConfigValue = (...keys) => {
+  // Expo statically injects environment variables, so dynamic access like process.env[key] 
+  // will NOT work. We must map them explicitly or use them directly.
   for (const key of keys) {
-    const value = process.env[key] ?? expoExtra[key];
+    let value;
+    if (key === 'EXPO_PUBLIC_API_URL') value = process.env.EXPO_PUBLIC_API_URL;
+    else if (key === 'EXPO_PUBLIC_APP_ENV') value = process.env.EXPO_PUBLIC_APP_ENV;
+    else if (key === 'EXPO_PUBLIC_USE_MOCK_API') value = process.env.EXPO_PUBLIC_USE_MOCK_API;
+    else if (key === 'EXPO_PUBLIC_ALLOW_DEMO_MODE') value = process.env.EXPO_PUBLIC_ALLOW_DEMO_MODE;
+    else if (key === 'EXPO_PUBLIC_APP_VERSION') value = process.env.EXPO_PUBLIC_APP_VERSION;
+    else if (key === 'EXPO_PUBLIC_BUILD_NUMBER') value = process.env.EXPO_PUBLIC_BUILD_NUMBER;
+    else if (key === 'EXPO_PUBLIC_GA_TRACKING_ID') value = process.env.EXPO_PUBLIC_GA_TRACKING_ID;
+    else value = expoExtra[key];
+
     if (value !== undefined && value !== null && value !== '') {
       return value;
     }

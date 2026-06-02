@@ -25,40 +25,13 @@ export default function ReportFormScreen() {
   const [date, setDate] = useState(draft.date ? parseLocalDate(draft.date) : new Date());
   const [notes, setNotes] = useState(draft.notes || '');
   const [image, setImage] = useState(draft.photo || null);
-  const [distribusiList, setDistribusiList] = useState([]);
-  const [selectedDistribusiId, setSelectedDistribusiId] = useState(draft.distribusiId || null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    ReportAPI.getAll()
-      .then((response) => {
-        if (!isMounted) return;
-        const items = response?.data?.reports || [];
-        setDistribusiList(items);
-        if (!selectedDistribusiId && items.length > 0) {
-          const pendingItem = items.find((item) => item.status_konsumsi !== 'sudah') || items[0];
-          setSelectedDistribusiId(pendingItem.distribusiId || pendingItem.id);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setDistribusiList([]);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedDistribusiId]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       ReportController.saveReportDraft({
         date: formatDateValue(date),
-        distribusiId: selectedDistribusiId,
         notes,
         photo: image,
       }, { silent: true });
@@ -101,10 +74,6 @@ export default function ReportFormScreen() {
       nextErrors.photo = 'Foto bukti minum vitamin wajib dipilih.';
     }
 
-    if (!selectedDistribusiId) {
-      nextErrors.distribusi = 'Pilih data distribusi TTD terlebih dahulu.';
-    }
-
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -124,7 +93,6 @@ export default function ReportFormScreen() {
     try {
       await ReportController.submitReport({
         date: formatDateValue(date),
-        distribusiId: selectedDistribusiId,
         notes: notes.trim(),
         photo: image,
       });
@@ -155,43 +123,7 @@ export default function ReportFormScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.card}>
-          <Text style={styles.label}>Data Distribusi TTD</Text>
-          {distribusiList.length === 0 ? (
-            <Text style={styles.helperText}>Belum ada data distribusi dari server untuk akun ini.</Text>
-          ) : (
-            distribusiList.map((item) => {
-              const itemId = item.distribusiId || item.id;
-              const selected = String(selectedDistribusiId) === String(itemId);
-              return (
-                <TouchableOpacity
-                  key={String(itemId)}
-                  style={[styles.distributionItem, selected && styles.distributionItemSelected]}
-                  onPress={() => {
-                    setSelectedDistribusiId(itemId);
-                    setErrors((current) => ({ ...current, distribusi: null }));
-                  }}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.distributionTitle}>Distribusi #{itemId}</Text>
-                    <Text style={styles.distributionMeta}>
-                      Terima: {item.receivedDate || '-'} · Jumlah: {item.jumlah || 1}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name={selected ? 'radio-button-on' : 'radio-button-off'}
-                    size={22}
-                    color={selected ? '#2563eb' : '#94a3b8'}
-                  />
-                </TouchableOpacity>
-              );
-            })
-          )}
-          {errors.distribusi ? <Text style={styles.errorText}>{errors.distribusi}</Text> : null}
-        </View>
-
-        <View style={styles.card}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>        <View style={styles.card}>
           <DatePickerField
             label="Tanggal Konsumsi"
             value={date}
@@ -311,30 +243,7 @@ export default function ReportFormScreen() {
       fontSize: 13,
       lineHeight: 18,
     },
-    distributionItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#e5e7eb',
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 10,
-      backgroundColor: '#fff',
-    },
-    distributionItemSelected: {
-      borderColor: '#2563eb',
-      backgroundColor: '#eff6ff',
-    },
-    distributionTitle: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: '#1f2937',
-    },
-    distributionMeta: {
-      marginTop: 3,
-      fontSize: 12,
-      color: '#6b7280',
-    },
+
     submitButton: {
       backgroundColor: '#2563eb', borderRadius: 16, paddingVertical: 16,
       alignItems: 'center', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 4 },

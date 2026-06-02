@@ -171,8 +171,12 @@ const ProfileScreen = () => {
 
   // Fungsi Membuka Modal Edit
   const handleEditPress = () => {
+    let genderVal = user.gender;
+    if (genderVal === 'F') genderVal = 'P';
+    if (genderVal === 'M') genderVal = 'L';
     setEditData({
       ...user,
+      gender: genderVal || 'P',
       height: user.height != null ? String(user.height) : '',
       weight: user.weight != null ? String(user.weight) : '',
     });
@@ -192,8 +196,10 @@ const ProfileScreen = () => {
     return {
       ...payload,
       name: String(payload.name || '').trim(),
-      school: String(payload.school || '').trim(),
+      email: String(payload.email || '').trim(),
       birthPlace: String(payload.birthPlace || '').trim(),
+      birthDate: String(payload.birthDate || '').trim(),
+      gender: String(payload.gender || '').trim(),
       height: normalizeNumber(payload.height),
       weight: normalizeNumber(payload.weight),
     };
@@ -207,8 +213,37 @@ const ProfileScreen = () => {
 
     const normalizedPayload = normalizeProfilePayload(editData);
 
-    if (!normalizedPayload.name || !normalizedPayload.school) {
-        Alert.alert("Error", "Nama dan Sekolah tidak boleh kosong!");
+    if (!normalizedPayload.name) {
+        Alert.alert("Error", "Nama Lengkap tidak boleh kosong!");
+        return;
+    }
+    if (!normalizedPayload.email) {
+        Alert.alert("Error", "Email tidak boleh kosong!");
+        return;
+    }
+    if (!normalizedPayload.birthPlace) {
+        Alert.alert("Error", "Tempat Lahir tidak boleh kosong!");
+        return;
+    }
+    if (!normalizedPayload.birthDate) {
+        Alert.alert("Error", "Tanggal Lahir tidak boleh kosong!");
+        return;
+    }
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(normalizedPayload.birthDate)) {
+        Alert.alert("Error", "Format Tanggal Lahir harus YYYY-MM-DD (contoh: 2005-08-12)!");
+        return;
+    }
+    if (!normalizedPayload.gender || (normalizedPayload.gender !== 'L' && normalizedPayload.gender !== 'P')) {
+        Alert.alert("Error", "Silakan pilih Jenis Kelamin!");
+        return;
+    }
+    if (normalizedPayload.height == null || normalizedPayload.height <= 0) {
+        Alert.alert("Error", "Tinggi badan harus berupa angka lebih dari 0!");
+        return;
+    }
+    if (normalizedPayload.weight == null || normalizedPayload.weight <= 0) {
+        Alert.alert("Error", "Berat badan harus berupa angka lebih dari 0!");
         return;
     }
 
@@ -380,16 +415,7 @@ const ProfileScreen = () => {
               icon="water-outline" 
               color="#ef4444" 
             />
-            <StatCard 
-              label="Target TTD" 
-              value={
-                Number(user.totalTarget ?? user.total_target ?? 0) > 0
-                  ? `${user.consumptionCount || 0}/${Number(user.totalTarget ?? user.total_target ?? 0)}`
-                  : `${user.consumptionCount || 0}`
-              }
-              icon="medkit-outline" 
-              color="#3b82f6" 
-            />
+
           </View>
 
           {/* Menu Logout */}
@@ -439,13 +465,45 @@ const ProfileScreen = () => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nama Sekolah</Text>
+                <Text style={styles.label}>Email</Text>
                 <TextInput
                   style={styles.input}
-                  value={editData.school}
-                  onChangeText={(text) => setEditData({...editData, school: text})}
-                  placeholder="Masukkan nama sekolah"
+                  value={editData.email}
+                  onChangeText={(text) => setEditData({...editData, email: text})}
+                  placeholder="contoh@modiva.id"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Jenis Kelamin</Text>
+                <View style={styles.genderContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.genderButton,
+                      editData.gender === 'L' && styles.genderButtonActive
+                    ]}
+                    onPress={() => setEditData({ ...editData, gender: 'L' })}
+                  >
+                    <Ionicons name="male" size={16} color={editData.gender === 'L' ? '#fff' : '#4b5563'} style={{ marginRight: 6 }} />
+                    <Text style={[styles.genderButtonText, editData.gender === 'L' && styles.genderButtonTextActive]}>
+                      Laki-laki
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.genderButton,
+                      editData.gender === 'P' && styles.genderButtonActive
+                    ]}
+                    onPress={() => setEditData({ ...editData, gender: 'P' })}
+                  >
+                    <Ionicons name="female" size={16} color={editData.gender === 'P' ? '#fff' : '#4b5563'} style={{ marginRight: 6 }} />
+                    <Text style={[styles.genderButtonText, editData.gender === 'P' && styles.genderButtonTextActive]}>
+                      Perempuan
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               
                <View style={styles.inputGroup}>
@@ -455,6 +513,16 @@ const ProfileScreen = () => {
                   value={editData.birthPlace}
                    onChangeText={(text) => setEditData({...editData, birthPlace: text})}
                   placeholder="Tempat Lahir"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Tanggal Lahir</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editData.birthDate}
+                  onChangeText={(text) => setEditData({...editData, birthDate: text})}
+                  placeholder="YYYY-MM-DD (contoh: 2005-08-12)"
                 />
               </View>
 
@@ -835,6 +903,35 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontSize: 14,
     fontWeight: '500',
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  genderButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginHorizontal: 4,
+  },
+  genderButtonActive: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  genderButtonText: {
+    color: '#4b5563',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  genderButtonTextActive: {
+    color: '#fff',
   },
 });
 

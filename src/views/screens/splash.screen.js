@@ -106,9 +106,7 @@ const SplashScreen = ({ onAnimationComplete }) => {
           <Text style={styles.brandName} allowFontScaling={false}>
             Modiva
           </Text>
-        </Animated.View>
-
-        {/* === CONTENT: Card Container === */}
+        </Animated.View>        {/* === CONTENT: Card Container === */}
         <Animated.View 
           style={[
             styles.middleSection,
@@ -140,6 +138,7 @@ const SplashScreen = ({ onAnimationComplete }) => {
             </LinearGradient>
           </View>
         </Animated.View>
+
 
         {/* === FOOTER: Tagline & Progress Bar === */}
         <Animated.View 

@@ -6,6 +6,7 @@
 import { ApiEndpoints } from '../../config/api.config.js';
 import { Logger } from '../../utils/logger.js';
 import { apiService } from './api.services.js';
+import { store } from '../../state/store.js';
 
 const parseCoordinates = (value) => {
   const rawValue = String(value || '').trim();
@@ -35,22 +36,47 @@ const normalizeSchoolLocation = (payload = {}) => {
     gps_koordinat: source.gps_koordinat || null,
     latitude: source.latitude ?? coordinates.latitude,
     longitude: source.longitude ?? coordinates.longitude,
+    telepon: source.telepon || null,
+    email: source.email || null,
+    kepala_sekolah: source.kepala_sekolah || null,
+    akreditasi: source.akreditasi || null,
+    npsn: source.npsn || null,
+    jumlah_siswa: source.jumlah_siswa || 0,
+    status: source.status || null,
+    jenjang: source.jenjang || null,
   };
 };
 
 export const SchoolAPI = {
   async getLocation() {
     Logger.info('📍 SchoolAPI.getLocation()');
-    const endpoint = ApiEndpoints.schools.getLocation;
-    const response = await apiService.get(endpoint.url, {
-      timeout: endpoint.timeout,
-      cache: false,
-    });
+    
+    try {
+      const state = store.getState();
+      const schoolId = state?.user?.profile?.schoolId || state?.user?.profile?.school_id;
+      
+      if (!schoolId) {
+        throw new Error('ID Sekolah tidak ditemukan pada profil pengguna.');
+      }
 
-    return {
-      success: response?.success !== false,
-      data: normalizeSchoolLocation(response),
-    };
+      const response = await apiService.get(`/schools/${schoolId}`, {
+        timeout: 5000,
+        cache: false
+      });
+      
+      const detailData = response?.data || response;
+      if (detailData && detailData.id) {
+        return {
+          success: true,
+          data: normalizeSchoolLocation(detailData),
+        };
+      }
+      
+      throw new Error('Data sekolah tidak valid.');
+    } catch (e) {
+      Logger.error('Gagal memuat detail data sekolah dari backend.', e?.message || e);
+      throw e;
+    }
   },
 
   async getAll() {

@@ -162,6 +162,7 @@ export const NotificationController = {
                 title: schedule.title,
                 body: schedule.body,
                 sound: 'default',
+                channelId: Platform.OS === 'android' ? 'daily-reminders' : undefined,
                 data: {
                     type: 'daily-reminder',
                     userId: profile.id
@@ -171,7 +172,6 @@ export const NotificationController = {
                 type: Notifications.SchedulableTriggerInputTypes.DAILY,
                 hour: schedule.hour,
                 minute: schedule.minute,
-                channelId: Platform.OS === 'android' ? 'daily-reminders' : undefined,
             },
         });
 
@@ -436,6 +436,7 @@ export const NotificationController = {
                     body: notification.message,
                     data: { id: notification.id, type: notification.type },
                     sound: true,
+                    channelId: Platform.OS === 'android' ? 'daily-reminders' : undefined,
                 },
                 trigger: null, // As soon as possible
             });
