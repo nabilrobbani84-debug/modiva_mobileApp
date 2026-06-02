@@ -284,8 +284,8 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   logo: {
-    width: 42,
-    height: 42,
+    width: 58,
+    height: 58,
   },
   greeting: {
     fontSize: 24,
