@@ -51,6 +51,25 @@ const formatReportDate = (value) => {
   };
 };
 
+const getDetailedDateString = (value) => {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return 'Tanggal tidak valid';
+  
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const dayName = days[date.getDay()];
+  const formattedDate = date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const timeStr = `${hours}:${minutes} WIB`;
+  
+  return `${dayName}, ${formattedDate} - ${timeStr}`;
+};
+
 const ReportsScreen = () => {
   const router = useRouter();
   const syncFromStore = useCallback(() => {
@@ -76,6 +95,33 @@ const ReportsScreen = () => {
   const [currentHB, setCurrentHB] = useState('-');
   const [reports, setReports] = useState([]);
   const [activeUserId, setActiveUserId] = useState(store.getState()?.user?.profile?.id || null);
+
+  // --- Dynamic Recap Calculation ---
+  const recap = React.useMemo(() => {
+    const total = reports.filter(r => r.status_konsumsi === 'sudah' || r.status === 'Selesai').length;
+    
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const monthCount = reports.filter(r => {
+      const isDone = r.status_konsumsi === 'sudah' || r.status === 'Selesai';
+      if (!isDone) return false;
+      const rDate = new Date(r.date || r.timestamp);
+      return rDate >= startOfMonth;
+    }).length;
+
+    const weekCount = reports.filter(r => {
+      const isDone = r.status_konsumsi === 'sudah' || r.status === 'Selesai';
+      if (!isDone) return false;
+      const rDate = new Date(r.date || r.timestamp);
+      return rDate >= oneWeekAgo;
+    }).length;
+
+    return { total, monthCount, weekCount };
+  }, [reports]);
 
   // --- Logic Load Data ---
   const loadData = useCallback(async () => {
@@ -156,7 +202,6 @@ const ReportsScreen = () => {
       const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
 
       // 4. Tentukan lokasi simpan sementara
-      // Gunakan nama file yang aman (tanpa spasi aneh)
       const safeName = userInfo.name ? userInfo.name.replace(/[^a-zA-Z0-9]/g, '_') : 'User';
       const fileName = `Riwayat_TTD_${safeName}_${new Date().getTime()}.xlsx`;
       const fileUri = FileSystem.cacheDirectory + fileName;
@@ -272,6 +317,27 @@ const ReportsScreen = () => {
           </View>
         </View>
 
+        {/* --- Recap Card --- */}
+        <View style={styles.recapCard}>
+          <Text style={styles.recapTitle}>Rekapitulasi Konsumsi Vitamin</Text>
+          <View style={styles.recapGrid}>
+            <View style={styles.recapItem}>
+              <Text style={styles.recapNumber}>{recap.weekCount}</Text>
+              <Text style={styles.recapLabel}>Minggu Ini</Text>
+            </View>
+            <View style={styles.recapDivider} />
+            <View style={styles.recapItem}>
+              <Text style={styles.recapNumber}>{recap.monthCount}</Text>
+              <Text style={styles.recapLabel}>Bulan Ini</Text>
+            </View>
+            <View style={styles.recapDivider} />
+            <View style={styles.recapItem}>
+              <Text style={styles.recapNumber}>{recap.total}</Text>
+              <Text style={styles.recapLabel}>Total</Text>
+            </View>
+          </View>
+        </View>
+
         {/* --- 2. Chart Section --- */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Tren Hemoglobin</Text>
@@ -316,6 +382,7 @@ const ReportsScreen = () => {
                 {/* Detail */}
                 <View style={styles.reportDetail}>
                   <Text style={styles.reportTitle}>Distribusi #{report.distribusiId || report.id}</Text>
+                  <Text style={styles.reportDateDetail}>{getDetailedDateString(report.date || report.timestamp)}</Text>
                   <Text style={styles.reportNotes} numberOfLines={1}>
                     {report.notes || (isDone ? 'Bukti minum tersimpan' : 'Menunggu laporan konsumsi')}
                   </Text>
@@ -380,10 +447,64 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12, // Jarak antar icon
+    gap: 12,
   },
   iconButton: {
     padding: 4,
+  },
+
+  // Recap Card
+  recapCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  recapTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: COLORS.textSub,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  recapGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recapItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  recapNumber: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  recapLabel: {
+    fontSize: 11,
+    color: COLORS.textSub,
+    marginTop: 4,
+  },
+  recapDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: COLORS.border,
+  },
+  reportDateDetail: {
+    fontSize: 11,
+    color: COLORS.textSub,
+    marginTop: 2,
+    fontWeight: '500',
   },
 
   // Hero Card

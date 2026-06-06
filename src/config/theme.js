@@ -1,4 +1,5 @@
-// src/config/theme.js
+import { Platform } from 'react-native';
+
 // Theme configuration for Modiva App
 export const COLORS = {
   // Primary Colors
@@ -10,6 +11,10 @@ export const COLORS = {
   secondary: '#E24A4A',
   secondaryLight: '#FDEAEA',
   secondaryDark: '#C23A3A',
+  
+  // Blood Colors
+  bloodRed: '#dc2626',
+  bloodRedLight: '#fee2e2',
   
   // Neutral Colors
   white: '#FFFFFF',
@@ -40,25 +45,30 @@ export const COLORS = {
   transparent: 'transparent',
   overlay: 'rgba(0, 0, 0, 0.5)',
 };
+
+const systemFont = Platform.OS === 'ios' ? 'System' : 'sans-serif';
+const systemFontMedium = Platform.OS === 'ios' ? 'System' : 'sans-serif-medium';
+const systemFontLight = Platform.OS === 'ios' ? 'System' : 'sans-serif-light';
+
 export const FONTS = {
   regular: {
-    fontFamily: 'System',
+    fontFamily: systemFont,
     fontWeight: '400',
   },
   medium: {
-    fontFamily: 'System',
+    fontFamily: systemFontMedium,
     fontWeight: '500',
   },
   semiBold: {
-    fontFamily: 'System',
+    fontFamily: systemFontMedium,
     fontWeight: '600',
   },
   bold: {
-    fontFamily: 'System',
+    fontFamily: systemFontMedium,
     fontWeight: '700',
   },
   extraBold: {
-    fontFamily: 'System',
+    fontFamily: systemFontMedium,
     fontWeight: '800',
   },
 };

@@ -39,7 +39,53 @@ export default function HomeScreen() {
           }
       };
 
-      // 1. Initial Get
+      // Master data sekolah untuk fallback agar sesuai dengan database mysql
+      const getLocalSchoolFallback = (schoolId, fallbackName) => {
+        const id = String(schoolId || '').toUpperCase();
+        const fallbackSchools = {
+          "SMPN1JKT": {
+            nama: "SMPN 1 Jakarta",
+            alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
+            kota: "Jakarta Pusat",
+            gps_koordinat: "-6.196241,106.836671"
+          },
+          "1": {
+            nama: "SMPN 1 Jakarta",
+            alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
+            kota: "Jakarta Pusat",
+            gps_koordinat: "-6.196241,106.836671"
+          },
+          "3": {
+            nama: "SMAN 1 KOTA DEPOK",
+            alamat: "JL. NUSANTARA RAYA 317 DEPOK",
+            kota: "Kota Depok",
+            gps_koordinat: "-6.3952,106.8145"
+          },
+          "8": {
+            nama: "SMAN 2 KOTA DEPOK",
+            alamat: "Jl. Gede Raya No. 177 Depok Timur, Abadi Jaya, Kec. Sukmajaya, Kota Depok",
+            kota: "Kota Depok",
+            gps_koordinat: "-6.3941,106.849"
+          },
+          "12": {
+            nama: "SMAN 3 KOTA DEPOK",
+            alamat: "Jl. Raden Saleh No.45, Sukmajaya, Kec. Sukmajaya, Kota Depok",
+            kota: "Kota Depok",
+            gps_koordinat: "-6.4018,106.819"
+          }
+        };
+        return fallbackSchools[id] || {
+          nama: fallbackName || "SMPN 1 Jakarta",
+          alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
+          kota: "Jakarta Pusat",
+          gps_koordinat: "-6.196241,106.836671"
+        };
+      };
+
+      const activeProfile = store.getState()?.user?.profile || AuthController.getCurrentUser() || {};
+      const activeSchoolId = activeProfile.schoolId || activeProfile.school_id;
+
+      // 1. Initial Get & Dashboard Data Fetch
       updateState();
       DashboardController.loadDashboardData().catch((error) => {
         console.log('Gagal memuat dashboard:', error);
@@ -55,16 +101,13 @@ export default function HomeScreen() {
               kota: schoolData.kota || '',
               gps_koordinat: schoolData.gps_koordinat
             });
+          } else {
+            setMySchool(getLocalSchoolFallback(activeSchoolId, activeProfile.school));
           }
         })
         .catch(err => {
           console.log('Gagal ambil data sekolah:', err);
-          // Fallback sementara agar UI Lokasi Sekolah selalu tampil
-          setMySchool({
-            nama: user.school || 'SMPN 1 Jakarta (Preview)',
-            alamat: 'Jl. Cikini Raya No.1, Menteng',
-            kota: 'Jakarta Pusat'
-          });
+          setMySchool(getLocalSchoolFallback(activeSchoolId, activeProfile.school));
         });
 
       // 2. Fallback check (Controller)
@@ -180,8 +223,8 @@ export default function HomeScreen() {
           <View style={styles.summaryDivider} />
 
           <View style={styles.summaryItem}>
-            <View style={[styles.summaryIconBox, { backgroundColor: '#eff6ff' }]}>
-              <Ionicons name="water" size={24} color="#3b82f6" />
+            <View style={[styles.summaryIconBox, { backgroundColor: COLORS.bloodRedLight || '#fee2e2' }]}>
+              <Ionicons name="water" size={24} color={COLORS.bloodRed || '#dc2626'} />
             </View>
             <View>
               <Text style={styles.summaryLabel}>Total Konsumsi</Text>
@@ -236,8 +279,20 @@ export default function HomeScreen() {
                 <View key={item.id || index} style={styles.historyItem}>
                   <View>
                     <Text style={styles.historyDate}>
-                        {/* Format Tanggal: YYYY-MM-DD -> DD Month YYYY */}
-                        {new Date(item.date || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {(() => {
+                          const dateObj = new Date(item.date || item.timestamp || Date.now());
+                          if (isNaN(dateObj.getTime())) return 'Tanggal tidak valid';
+                          const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                          const dayName = days[dateObj.getDay()];
+                          const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          });
+                          const hours = String(dateObj.getHours()).padStart(2, '0');
+                          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                          return `${dayName}, ${formattedDate} - ${hours}:${minutes} WIB`;
+                        })()}
                     </Text>
                     {/* Jika ada nilai HB di report, tampilkan. Jika tidak, hide atau tampilkan default */}
                     {(item.hb || item.hbValue || item.hb_value) ? (

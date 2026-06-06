@@ -48,6 +48,46 @@ const getAvailableNativeNotifications = () => {
     return Notifications;
 };
 
+const REMINDER_MESSAGES = [
+    {
+        title: 'Cantik & Sehat Hari Ini ✨',
+        body: (name) => `Hai ${name}, yuk minum Tablet Tambah Darah hari ini agar wajah tetap segar dan bebas 5L!`
+    },
+    {
+        title: 'Semangat Belajar & Berprestasi 📚',
+        body: (name) => `Halo ${name}, asupan zat besi yang cukup hari ini membantumu tetap fokus dan aktif belajar!`
+    },
+    {
+        title: 'Waktunya Minum Vitamin! 💊',
+        body: (name) => `Hai ${name}, jangan lupa konsumsi Tablet Tambah Darah hari ini untuk cegah anemia ya!`
+    },
+    {
+        title: 'Tips Penyerapan Zat Besi 🍊',
+        body: (name) => `Halo ${name}, yuk minum vitamin hari ini dengan jus jeruk/sumber Vitamin C biar penyerapan zat besi optimal!`
+    },
+    {
+        title: 'Jangan Tunda Sehatmu! ❤️',
+        body: (name) => `Hai ${name}, tubuh sehat dimulai dari rutin minum Tablet Tambah Darah hari ini. Yuk luangkan waktu!`
+    },
+    {
+        title: 'Remaja Sehat Tanpa Anemia! 🌟',
+        body: (name) => `Halo ${name}, tetap fit dan produktif seharian dengan tidak lupa minum vitamin hari ini!`
+    },
+    {
+        title: 'Tubuh Kuat, Pikiran Cerdas 🧠',
+        body: (name) => `Hai ${name}, pastikan minum suplemen zat besi hari ini agar hari-harimu penuh energi!`
+    }
+];
+
+const getReminderMessageForToday = (name) => {
+    const day = new Date().getDay(); // 0 (Sunday) to 6 (Saturday)
+    const message = REMINDER_MESSAGES[day % REMINDER_MESSAGES.length];
+    return {
+        title: message.title,
+        body: message.body(name)
+    };
+};
+
 /**
  * Notification Controller
  */
@@ -111,12 +151,15 @@ export const NotificationController = {
         const hour = Number.parseInt(hourString, 10);
         const minute = Number.parseInt(minuteString, 10);
 
+        const name = userProfile?.name || 'Sobat Modiva';
+        const msg = getReminderMessageForToday(name);
+
         return {
             hour: Number.isFinite(hour) ? hour : 8,
             minute: Number.isFinite(minute) ? minute : 0,
-            title: 'Pengingat Harian Modiva',
-            body: `Halo ${userProfile?.name || 'Sobat Modiva'}, jangan lupa minum Tablet Tambah Darah hari ini ya!`,
-            signature: `${userProfile?.id || 'guest'}-${userProfile?.name || 'user'}-${reminderTime}`
+            title: msg.title,
+            body: msg.body,
+            signature: `${userProfile?.id || 'guest'}-${userProfile?.name || 'user'}-${reminderTime}-${new Date().getDay()}`
         };
     },
 
@@ -496,10 +539,12 @@ export const NotificationController = {
             );
 
             if (!hasReminderToday) {
+                const name = profile.name || 'Sobat';
+                const msg = getReminderMessageForToday(name);
                 this.addLocalNotification({
                     type: 'reminder',
-                    title: 'Waktunya Minum Vitamin!',
-                    message: `Halo ${profile.name || 'Sobat'}, jangan lupa minum Tablet Tambah Darah hari ini ya!`,
+                    title: msg.title,
+                    message: msg.body,
                     timestamp: new Date().toISOString(),
                     read: false,
                     icon: 'notifications', // Use valid icon name
@@ -510,7 +555,7 @@ export const NotificationController = {
                 // Show toast
                 store.dispatch(ActionTypes.UI_SHOW_TOAST, {
                     type: 'info',
-                    message: 'Jangan lupa minum vitamin hari ini!'
+                    message: msg.body
                 });
             }
         }

@@ -1424,6 +1424,39 @@ def update_profile(
     values.append(user["id"])
 
     execute_write(f"UPDATE users SET {', '.join(assignments)} WHERE id = %s", tuple(values))
+
+    # Sync to legacy 'siswa' table if available
+    if is_laragon_legacy_schema_available():
+        try:
+            legacy_columns = table_columns("siswa")
+            legacy_allowed_fields = {
+                "name": "nama",
+                "email": "email",
+                "birthPlace": "tmp_lahir",
+                "birth_place": "tmp_lahir",
+                "birthDate": "tgl_lahir",
+                "birth_date": "tgl_lahir",
+                "height": "tinggi_badan",
+                "weight": "berat_badan",
+                "schoolId": "sekolah_id",
+                "school_id": "sekolah_id",
+                "gender": "gender",
+            }
+            legacy_assignments = []
+            legacy_values = []
+            for payload_key, column in legacy_allowed_fields.items():
+                if payload_key in payload and column in legacy_columns:
+                    legacy_assignments.append(f"{column} = %s")
+                    legacy_values.append(payload[payload_key])
+            if legacy_assignments:
+                if "updated_at" in legacy_columns:
+                    legacy_assignments.append("updated_at = %s")
+                    legacy_values.append(updated_at)
+                legacy_values.append(user["id"])
+                execute_write(f"UPDATE siswa SET {', '.join(legacy_assignments)} WHERE id = %s", tuple(legacy_values))
+        except Exception as sync_err:
+            print(f"[Modiva] Gagal menyinkronkan edit-profile ke tabel legacy siswa: {sync_err}")
+
     refreshed_user = fetch_one("SELECT * FROM users WHERE id = %s LIMIT 1", (user["id"],))
     sync_user_profile_to_couchbase(str(user["id"]))
     return {

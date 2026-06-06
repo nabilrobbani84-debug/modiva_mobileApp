@@ -25,6 +25,9 @@ const normalizeSchoolLocation = (payload = {}) => {
   const source = payload.data || payload;
   const coordinates = parseCoordinates(source.gps_koordinat);
 
+  const lat = source.latitude ?? coordinates.latitude;
+  const lng = source.longitude ?? coordinates.longitude;
+
   return {
     id: source.id || 'active-school',
     kode: source.kode || null,
@@ -33,9 +36,9 @@ const normalizeSchoolLocation = (payload = {}) => {
     alamat: source.alamat || '-',
     kota: source.kota || '',
     provinsi: source.provinsi || '',
-    gps_koordinat: source.gps_koordinat || null,
-    latitude: source.latitude ?? coordinates.latitude,
-    longitude: source.longitude ?? coordinates.longitude,
+    gps_koordinat: source.gps_koordinat || (lat && lng ? `${lat},${lng}` : null),
+    latitude: lat,
+    longitude: lng,
     telepon: source.telepon || null,
     email: source.email || null,
     kepala_sekolah: source.kepala_sekolah || null,

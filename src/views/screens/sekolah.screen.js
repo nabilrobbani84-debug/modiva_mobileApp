@@ -324,9 +324,9 @@ export default function SekolahScreen() {
         }
       }
 
-      // Jika kosong atau API gagal, gunakan fallback data asli dari database backend untuk SMPN 1 Jakarta
-      if (schoolList.length === 0) {
-        const fallbackSchool = {
+      // Jika kosong atau API gagal, gunakan fallback data asli dari database
+      const fallbackSchools = {
+        "SMPN1JKT": {
           id: "SMPN1JKT",
           nama: "SMPN 1 Jakarta",
           nama_lengkap: "Sekolah Menengah Pertama Negeri 1 Jakarta",
@@ -345,7 +345,91 @@ export default function SekolahScreen() {
           jumlah_siswa: 1,
           status: "Negeri",
           jenjang: "SMP"
-        };
+        },
+        "1": {
+          id: "SMPN1JKT",
+          nama: "SMPN 1 Jakarta",
+          nama_lengkap: "Sekolah Menengah Pertama Negeri 1 Jakarta",
+          alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
+          kota: "Jakarta Pusat",
+          provinsi: "DKI Jakarta",
+          kode_pos: "10330",
+          telepon: "(021) 3913371",
+          email: "smpn1jkt@disdik.jakarta.go.id",
+          website: "http://smpn1jkt.sch.id",
+          kepala_sekolah: "Drs. H. Ahmad Fauzi, M.Pd",
+          akreditasi: "A",
+          npsn: "20100047",
+          latitude: -6.196241,
+          longitude: 106.836671,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMP"
+        },
+        "3": {
+          id: "3",
+          nama: "SMAN 1 KOTA DEPOK",
+          nama_lengkap: "SMA Negeri 1 Depok",
+          alamat: "JL. NUSANTARA RAYA 317 DEPOK",
+          kota: "Kota Depok",
+          provinsi: "Jawa Barat",
+          kode_pos: "16431",
+          telepon: "(021) 7520137",
+          email: "sman1depokjabar@gmail.com",
+          website: "http://sman1depok.sch.id",
+          kepala_sekolah: "-",
+          akreditasi: "A",
+          npsn: "20223819",
+          latitude: -6.3952,
+          longitude: 106.8145,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMA"
+        },
+        "8": {
+          id: "8",
+          nama: "SMAN 2 KOTA DEPOK",
+          nama_lengkap: "SMA Negeri 2 Depok",
+          alamat: "Jl. Gede Raya No. 177 Depok Timur, Abadi Jaya, Kec. Sukmajaya, Kota Depok",
+          kota: "Kota Depok",
+          provinsi: "Jawa Barat",
+          kode_pos: "16417",
+          telepon: "(021) 7708359",
+          email: "sman2.depok@yahoo.com",
+          website: "http://sman2depok.sch.id",
+          kepala_sekolah: "-",
+          akreditasi: "A",
+          npsn: "20223818",
+          latitude: -6.3941,
+          longitude: 106.849,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMA"
+        },
+        "12": {
+          id: "12",
+          nama: "SMAN 3 KOTA DEPOK",
+          nama_lengkap: "SMA Negeri 3 Depok",
+          alamat: "Jl. Raden Saleh No.45, Sukmajaya, Kec. Sukmajaya, Kota Depok",
+          kota: "Kota Depok",
+          provinsi: "Jawa Barat",
+          kode_pos: "16412",
+          telepon: "021-7700310",
+          email: "SMANTIGADEPOK@YAHOO.COM",
+          website: "http://sman3depok.sch.id",
+          kepala_sekolah: "-",
+          akreditasi: "A",
+          npsn: "20223817",
+          latitude: -6.4018,
+          longitude: 106.819,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMA"
+        }
+      };
+
+      if (schoolList.length === 0) {
+        const fallbackSchool = fallbackSchools[String(userSchoolId || '').toUpperCase()] || fallbackSchools["SMPN1JKT"];
         schoolList = [fallbackSchool];
         setSelectedSchool(fallbackSchool);
       }
@@ -353,26 +437,109 @@ export default function SekolahScreen() {
       setSchools(schoolList);
     } catch (e) {
       console.warn('Gagal memuat sekolah, menggunakan fallback:', e);
-      const fallbackSchool = {
-        id: "SMPN1JKT",
-        nama: "SMPN 1 Jakarta",
-        nama_lengkap: "Sekolah Menengah Pertama Negeri 1 Jakarta",
-        alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
-        kota: "Jakarta Pusat",
-        provinsi: "DKI Jakarta",
-        kode_pos: "10330",
-        telepon: "(021) 3913371",
-        email: "smpn1jkt@disdik.jakarta.go.id",
-        website: "http://smpn1jkt.sch.id",
-        kepala_sekolah: "Drs. H. Ahmad Fauzi, M.Pd",
-        akreditasi: "A",
-        npsn: "20100047",
-        latitude: -6.196241,
-        longitude: 106.836671,
-        jumlah_siswa: 1,
-        status: "Negeri",
-        jenjang: "SMP"
+      const fallbackSchools = {
+        "SMPN1JKT": {
+          id: "SMPN1JKT",
+          nama: "SMPN 1 Jakarta",
+          nama_lengkap: "Sekolah Menengah Pertama Negeri 1 Jakarta",
+          alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
+          kota: "Jakarta Pusat",
+          provinsi: "DKI Jakarta",
+          kode_pos: "10330",
+          telepon: "(021) 3913371",
+          email: "smpn1jkt@disdik.jakarta.go.id",
+          website: "http://smpn1jkt.sch.id",
+          kepala_sekolah: "Drs. H. Ahmad Fauzi, M.Pd",
+          akreditasi: "A",
+          npsn: "20100047",
+          latitude: -6.196241,
+          longitude: 106.836671,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMP"
+        },
+        "1": {
+          id: "SMPN1JKT",
+          nama: "SMPN 1 Jakarta",
+          nama_lengkap: "Sekolah Menengah Pertama Negeri 1 Jakarta",
+          alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
+          kota: "Jakarta Pusat",
+          provinsi: "DKI Jakarta",
+          kode_pos: "10330",
+          telepon: "(021) 3913371",
+          email: "smpn1jkt@disdik.jakarta.go.id",
+          website: "http://smpn1jkt.sch.id",
+          kepala_sekolah: "Drs. H. Ahmad Fauzi, M.Pd",
+          akreditasi: "A",
+          npsn: "20100047",
+          latitude: -6.196241,
+          longitude: 106.836671,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMP"
+        },
+        "3": {
+          id: "3",
+          nama: "SMAN 1 KOTA DEPOK",
+          nama_lengkap: "SMA Negeri 1 Depok",
+          alamat: "JL. NUSANTARA RAYA 317 DEPOK",
+          kota: "Kota Depok",
+          provinsi: "Jawa Barat",
+          kode_pos: "16431",
+          telepon: "(021) 7520137",
+          email: "sman1depokjabar@gmail.com",
+          website: "http://sman1depok.sch.id",
+          kepala_sekolah: "-",
+          akreditasi: "A",
+          npsn: "20223819",
+          latitude: -6.3952,
+          longitude: 106.8145,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMA"
+        },
+        "8": {
+          id: "8",
+          nama: "SMAN 2 KOTA DEPOK",
+          nama_lengkap: "SMA Negeri 2 Depok",
+          alamat: "Jl. Gede Raya No. 177 Depok Timur, Abadi Jaya, Kec. Sukmajaya, Kota Depok",
+          kota: "Kota Depok",
+          provinsi: "Jawa Barat",
+          kode_pos: "16417",
+          telepon: "(021) 7708359",
+          email: "sman2.depok@yahoo.com",
+          website: "http://sman2depok.sch.id",
+          kepala_sekolah: "-",
+          akreditasi: "A",
+          npsn: "20223818",
+          latitude: -6.3941,
+          longitude: 106.849,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMA"
+        },
+        "12": {
+          id: "12",
+          nama: "SMAN 3 KOTA DEPOK",
+          nama_lengkap: "SMA Negeri 3 Depok",
+          alamat: "Jl. Raden Saleh No.45, Sukmajaya, Kec. Sukmajaya, Kota Depok",
+          kota: "Kota Depok",
+          provinsi: "Jawa Barat",
+          kode_pos: "16412",
+          telepon: "021-7700310",
+          email: "SMANTIGADEPOK@YAHOO.COM",
+          website: "http://sman3depok.sch.id",
+          kepala_sekolah: "-",
+          akreditasi: "A",
+          npsn: "20223817",
+          latitude: -6.4018,
+          longitude: 106.819,
+          jumlah_siswa: 1,
+          status: "Negeri",
+          jenjang: "SMA"
+        }
       };
+      const fallbackSchool = fallbackSchools[String(userSchoolId || '').toUpperCase()] || fallbackSchools["SMPN1JKT"];
       setSchools([fallbackSchool]);
       setSelectedSchool(fallbackSchool);
     } finally {

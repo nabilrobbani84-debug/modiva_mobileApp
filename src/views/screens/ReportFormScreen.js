@@ -70,10 +70,6 @@ export default function ReportFormScreen() {
       nextErrors.date = 'Tanggal konsumsi belum valid.';
     }
 
-    if (!image) {
-      nextErrors.photo = 'Foto bukti minum vitamin wajib dipilih.';
-    }
-
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -84,7 +80,7 @@ export default function ReportFormScreen() {
     }
 
     if (!validateForm()) {
-      Alert.alert('Data belum lengkap', 'Silakan lengkapi tanggal konsumsi dan foto bukti terlebih dahulu.');
+      Alert.alert('Data belum lengkap', 'Silakan lengkapi tanggal konsumsi terlebih dahulu.');
       return;
     }
 
@@ -140,7 +136,7 @@ export default function ReportFormScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Bukti Minum Vitamin</Text>
+          <Text style={styles.label}>Bukti Minum Vitamin (Opsional)</Text>
           <TouchableOpacity
             style={[styles.uploadArea, errors.photo && styles.uploadAreaError]}
             onPress={pickImage}
