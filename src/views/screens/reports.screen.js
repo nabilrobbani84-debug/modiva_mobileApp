@@ -381,7 +381,9 @@ const ReportsScreen = () => {
                 
                 {/* Detail */}
                 <View style={styles.reportDetail}>
-                  <Text style={styles.reportTitle}>Distribusi #{report.distribusiId || report.id}</Text>
+                  <Text style={styles.reportTitle} numberOfLines={1} ellipsizeMode="tail">
+                    Distribusi #{report.distribusiId || (String(report.id).startsWith('report-local-') ? 'Lokal' : report.id)}
+                  </Text>
                   <Text style={styles.reportDateDetail}>{getDetailedDateString(report.date || report.timestamp)}</Text>
                   <Text style={styles.reportNotes} numberOfLines={1}>
                     {report.notes || (isDone ? 'Bukti minum tersimpan' : 'Menunggu laporan konsumsi')}
