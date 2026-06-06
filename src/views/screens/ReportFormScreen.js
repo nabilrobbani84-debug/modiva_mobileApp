@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView } from 'react-native';
 import { ReportController } from '../../controllers/report.controller';
 import { ReportAPI } from '../../services/api/report.api';
 import { parseLocalDate, toLocalDateString } from '../../utils/helpers/dateHelpers';
@@ -104,7 +104,11 @@ export default function ReportFormScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient
@@ -119,7 +123,8 @@ export default function ReportFormScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>        <View style={styles.card}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <View style={styles.card}>
           <DatePickerField
             label="Tanggal Konsumsi"
             value={date}
@@ -181,7 +186,7 @@ export default function ReportFormScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -197,7 +202,7 @@ export default function ReportFormScreen() {
     headerContent: { flexDirection: 'row', alignItems: 'center' },
     backButton: { marginRight: 16 },
     headerTitle: { fontSize: 20, fontWeight: 'bold', color: 'white' },
-    scrollContent: { padding: 24, paddingBottom: 50 },
+    scrollContent: { padding: 24, paddingBottom: 150 },
     card: {
       backgroundColor: 'white',
       borderRadius: 16,
