@@ -80,8 +80,8 @@ const REMINDER_MESSAGES = [
 ];
 
 const getReminderMessageForToday = (name) => {
-    const day = new Date().getDay(); // 0 (Sunday) to 6 (Saturday)
-    const message = REMINDER_MESSAGES[day % REMINDER_MESSAGES.length];
+    const randomIndex = Math.floor(Math.random() * REMINDER_MESSAGES.length);
+    const message = REMINDER_MESSAGES[randomIndex];
     return {
         title: message.title,
         body: message.body(name)
