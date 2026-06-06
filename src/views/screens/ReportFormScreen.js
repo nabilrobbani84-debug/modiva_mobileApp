@@ -124,7 +124,12 @@ export default function ReportFormScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
+      >
         <View style={styles.card}>
           <DatePickerField
             label="Tanggal Konsumsi"
@@ -177,7 +182,7 @@ export default function ReportFormScreen() {
             onFocus={() => {
               setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
-              }, 300);
+              }, 500);
             }}
           />
         </View>
