@@ -263,20 +263,21 @@ export const updateMockStudentProfile = (userId, updates = {}) => {
   const student = getMockStudentByUserId(userId);
   if (!student) return null;
 
-  if (updates.name) student.nama = updates.name;
+  if (updates.name || updates.nama) student.nama = updates.name || updates.nama;
   if (updates.email) student.email = updates.email;
   if (updates.phone) student.phone = updates.phone;
   if (updates.address) student.address = updates.address;
   if (updates.school) student.sekolah_nama = updates.school;
-  if (updates.schoolCode) student.sekolah_kode = updates.schoolCode;
-  if (updates.schoolId) student.sekolah_id = updates.schoolId;
-  if (updates.birthPlace) student.tmp_lahir = updates.birthPlace;
-  if (updates.birthDate) student.tgl_lahir = updates.birthDate;
+  if (updates.schoolCode || updates.school_code) student.sekolah_kode = updates.schoolCode || updates.school_code;
+  if (updates.schoolId || updates.school_id) student.sekolah_id = updates.schoolId || updates.school_id;
+  if (updates.birthPlace || updates.birth_place || updates.tmp_lahir) student.tmp_lahir = updates.birthPlace || updates.birth_place || updates.tmp_lahir;
+  if (updates.birthDate || updates.birth_date || updates.tgl_lahir) student.tgl_lahir = updates.birthDate || updates.birth_date || updates.tgl_lahir;
+  if (updates.gender) student.gender = updates.gender;
   if (updates.height !== undefined) student.height = toNumber(updates.height, student.height || 160);
   if (updates.weight !== undefined) student.weight = toNumber(updates.weight, student.weight || 50);
-  if (updates.hbLast !== undefined) student.hb_last = toNumber(updates.hbLast, student.hb_last || 12.0);
-  if (updates.consumptionCount !== undefined) student.consumption_count = toNumber(updates.consumptionCount, student.consumption_count || 0);
-  if (updates.totalTarget !== undefined) student.total_target = toNumber(updates.totalTarget, student.total_target || 90);
+  if (updates.hbLast !== undefined || updates.hb_last !== undefined) student.hb_last = toNumber(updates.hbLast !== undefined ? updates.hbLast : updates.hb_last, student.hb_last || 12.0);
+  if (updates.consumptionCount !== undefined || updates.consumption_count !== undefined) student.consumption_count = toNumber(updates.consumptionCount !== undefined ? updates.consumptionCount : updates.consumption_count, student.consumption_count || 0);
+  if (updates.totalTarget !== undefined || updates.total_target !== undefined) student.total_target = toNumber(updates.totalTarget !== undefined ? updates.totalTarget : updates.total_target, student.total_target || 90);
   if (updates.avatar !== undefined) student.avatar = updates.avatar;
 
   Logger.info('💾 Mock student profile updated', { userId: String(userId) });
