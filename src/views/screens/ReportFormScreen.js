@@ -105,11 +105,7 @@ export default function ReportFormScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
+    <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient
@@ -124,80 +120,86 @@ export default function ReportFormScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView
-        ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets={true}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 100}
       >
-        <View style={styles.card}>
-          <DatePickerField
-            label="Tanggal Konsumsi"
-            value={date}
-            onChange={(selectedDate) => {
-              setDate(selectedDate);
-              setErrors((current) => ({ ...current, date: null }));
-            }}
-            placeholder="Pilih tanggal konsumsi"
-            maxDate={new Date()}
-            required
-            error={errors.date}
-            style={styles.dateField}
-          />
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>Bukti Minum Vitamin (Opsional)</Text>
-          <TouchableOpacity
-            style={[styles.uploadArea, errors.photo && styles.uploadAreaError]}
-            onPress={pickImage}
-          >
-            {image ? (
-              <Image
-                source={{ uri: image?.uri || image }}
-                style={{ width: '100%', height: 200, borderRadius: 12 }}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.uploadPlaceholder}>
-                <Ionicons name="camera-outline" size={48} color="#cbd5e1" />
-                <Text style={styles.uploadText}>Pilih Foto</Text>
-                <Text style={styles.uploadSubText}>JPG, PNG (Max 5MB)</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          {errors.photo ? <Text style={styles.errorText}>{errors.photo}</Text> : null}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>Catatan (Opsional)</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Tambahkan catatan..."
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            onFocus={() => {
-              setTimeout(() => {
-                scrollViewRef.current?.scrollToEnd({ animated: true });
-              }, 500);
-            }}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={isSubmitting}
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
-          <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Mengirim...' : 'Kirim Laporan'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.card}>
+            <DatePickerField
+              label="Tanggal Konsumsi"
+              value={date}
+              onChange={(selectedDate) => {
+                setDate(selectedDate);
+                setErrors((current) => ({ ...current, date: null }));
+              }}
+              placeholder="Pilih tanggal konsumsi"
+              maxDate={new Date()}
+              required
+              error={errors.date}
+              style={styles.dateField}
+            />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.label}>Bukti Minum Vitamin (Opsional)</Text>
+            <TouchableOpacity
+              style={[styles.uploadArea, errors.photo && styles.uploadAreaError]}
+              onPress={pickImage}
+            >
+              {image ? (
+                <Image
+                  source={{ uri: image?.uri || image }}
+                  style={{ width: '100%', height: 200, borderRadius: 12 }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.uploadPlaceholder}>
+                  <Ionicons name="camera-outline" size={48} color="#cbd5e1" />
+                  <Text style={styles.uploadText}>Pilih Foto</Text>
+                  <Text style={styles.uploadSubText}>JPG, PNG (Max 5MB)</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {errors.photo ? <Text style={styles.errorText}>{errors.photo}</Text> : null}
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.label}>Catatan (Opsional)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Tambahkan catatan..."
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 500);
+              }}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.submitButtonText}>
+              {isSubmitting ? 'Mengirim...' : 'Kirim Laporan'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
