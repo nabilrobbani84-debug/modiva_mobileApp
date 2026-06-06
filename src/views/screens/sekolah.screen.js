@@ -302,10 +302,21 @@ export default function SekolahScreen() {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   const [mapHtml, setMapHtml] = useState('');
 
-  // Ambil sekolah user saat ini dari store
-  const userProfile = store.getState()?.user?.profile;
-  const userSchoolId = userProfile?.schoolId;
-  const userSchoolCode = userProfile?.schoolCode;
+  // Ambil sekolah user saat ini dari store dengan state & subscribe
+  const [userProfile, setUserProfile] = useState(store.getState()?.user?.profile || {});
+  const userSchoolId = userProfile?.schoolId || userProfile?.school_id;
+  const userSchoolCode = userProfile?.schoolCode || userProfile?.school_code;
+
+  useEffect(() => {
+    const handleStoreChange = () => {
+      const activeProfile = store.getState()?.user?.profile || {};
+      setUserProfile(activeProfile);
+    };
+
+    handleStoreChange();
+    const unsubscribe = store.subscribe(handleStoreChange);
+    return () => unsubscribe();
+  }, []);
 
   const loadSchools = useCallback(async () => {
     try {
