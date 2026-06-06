@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView } from 'react-native';
 import { ReportController } from '../../controllers/report.controller';
 import { ReportAPI } from '../../services/api/report.api';
@@ -21,6 +21,7 @@ const formatDateValue = (value) => {
 
 export default function ReportFormScreen() {
   const router = useRouter();
+  const scrollViewRef = useRef(null);
   const draft = useMemo(() => ReportController.loadReportDraft() || {}, []);
   const [date, setDate] = useState(draft.date ? parseLocalDate(draft.date) : new Date());
   const [notes, setNotes] = useState(draft.notes || '');
@@ -123,7 +124,7 @@ export default function ReportFormScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <DatePickerField
             label="Tanggal Konsumsi"
@@ -173,6 +174,11 @@ export default function ReportFormScreen() {
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            onFocus={() => {
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 300);
+            }}
           />
         </View>
 
