@@ -67,6 +67,54 @@ export default function ReportFormScreen() {
     }
   };
 
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Izin Kamera Ditolak', 'Aplikasi memerlukan izin akses kamera untuk mengambil foto.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      const selectedAsset = result.assets[0];
+      setImage({
+        uri: selectedAsset.uri,
+        name: selectedAsset.fileName || `vitamin-proof-${Date.now()}.jpg`,
+        type: selectedAsset.mimeType || 'image/jpeg',
+        size: selectedAsset.fileSize || null,
+        width: selectedAsset.width || null,
+        height: selectedAsset.height || null,
+      });
+      setErrors((current) => ({ ...current, photo: null }));
+    }
+  };
+
+  const handleSelectPhoto = () => {
+    Alert.alert(
+      'Pilih Bukti Minum Vitamin',
+      'Silakan pilih opsi pengambilan foto bukti:',
+      [
+        {
+          text: 'Kamera (Ambil Foto)',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Galeri (Pilih Foto)',
+          onPress: pickImage,
+        },
+        {
+          text: 'Batal',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
   const validateForm = () => {
     const nextErrors = {};
     const selectedDate = date instanceof Date ? date : new Date(date);
@@ -164,7 +212,7 @@ export default function ReportFormScreen() {
             <Text style={styles.label}>Bukti Minum Vitamin (Opsional)</Text>
             <TouchableOpacity
               style={[styles.uploadArea, errors.photo && styles.uploadAreaError]}
-              onPress={pickImage}
+              onPress={handleSelectPhoto}
             >
               {image ? (
                 <Image
