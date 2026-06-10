@@ -15,7 +15,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    Linking
 } from 'react-native';
 
 import { AuthController } from '../../controllers/auth.controller';
@@ -348,36 +349,42 @@ const ProfileScreen = () => {
 
             <View style={styles.headerContent}>
               <View style={styles.avatarContainer}>
-                {user.avatar ? (
-                  <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
-                ) : (
-                  <Text style={styles.avatarText}>
-                    {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                  </Text>
-                )}
-                <TouchableOpacity
-                  style={[styles.editAvatarButton, isUploadingAvatar && styles.editAvatarButtonDisabled]}
-                  onPress={handlePickAvatar}
-                  disabled={isUploadingAvatar}
-                >
-                  <Ionicons name="camera" size={16} color="#3b82f6" />
-                </TouchableOpacity>
+                <Text style={styles.avatarText}>
+                  {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                </Text>
               </View>
-              {user.avatar ? (
-                <TouchableOpacity
-                  style={[styles.removeAvatarButton, isUploadingAvatar && styles.editAvatarButtonDisabled]}
-                  onPress={handleDeleteAvatar}
-                  disabled={isUploadingAvatar}
-                >
-                  <Ionicons name="trash-outline" size={14} color="#fff" />
-                  <Text style={styles.removeAvatarButtonText}>
-                    {isUploadingAvatar ? 'Memproses...' : 'Hapus foto'}
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
               
               <Text style={styles.userName}>{user.name || 'Pengguna'}</Text>
-              <Text style={styles.userEmail}>{user.email || '-'}</Text>
+              <TouchableOpacity 
+                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}
+                onPress={() => {
+                  if (user.email && user.email !== '-') {
+                    const email = user.email;
+                    // Skema URL khusus untuk aplikasi Gmail
+                    const gmailUrl = Platform.OS === 'ios' 
+                      ? `googlegmail://co?to=${email}` 
+                      : `intent://compose?to=${email}#Intent;package=com.google.android.gm;scheme=mailto;end;`;
+                    
+                    Linking.canOpenURL(gmailUrl).then(supported => {
+                      if (supported) {
+                        return Linking.openURL(gmailUrl);
+                      } else {
+                        return Linking.openURL(`mailto:${email}`);
+                      }
+                    }).catch(err => {
+                      console.error("Gagal membuka aplikasi email:", err);
+                      // Fallback ke mailto standar jika intent gagal
+                      Linking.openURL(`mailto:${email}`).catch(() => {
+                        Alert.alert("Error", "Gagal membuka aplikasi email.");
+                      });
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="logo-google" size={14} color="#dbeafe" style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 14, color: '#dbeafe' }}>{user.email || '-'}</Text>
+              </TouchableOpacity>
               
               <View style={styles.schoolBadge}>
                 <Ionicons name="school-outline" size={14} color="white" />
@@ -442,7 +449,7 @@ const ProfileScreen = () => {
         onRequestClose={() => setModalVisible(false)}
       >
         <KeyboardAvoidingView 
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
           style={styles.modalOverlay}
         >
           <View style={styles.modalContent}>
@@ -453,7 +460,11 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Nama Lengkap</Text>
                 <TextInput
@@ -461,6 +472,7 @@ const ProfileScreen = () => {
                   value={editData.name}
                   onChangeText={(text) => setEditData({...editData, name: text})}
                   placeholder="Masukkan nama lengkap"
+                  placeholderTextColor="#9ca3af"
                 />
               </View>
 
@@ -473,6 +485,7 @@ const ProfileScreen = () => {
                   placeholder="contoh@modiva.id"
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  placeholderTextColor="#9ca3af"
                 />
               </View>
 
@@ -513,6 +526,7 @@ const ProfileScreen = () => {
                   value={editData.birthPlace}
                    onChangeText={(text) => setEditData({...editData, birthPlace: text})}
                   placeholder="Tempat Lahir"
+                  placeholderTextColor="#9ca3af"
                 />
               </View>
 
@@ -523,6 +537,7 @@ const ProfileScreen = () => {
                   value={editData.birthDate}
                   onChangeText={(text) => setEditData({...editData, birthDate: text})}
                   placeholder="YYYY-MM-DD (contoh: 2005-08-12)"
+                  placeholderTextColor="#9ca3af"
                 />
               </View>
 
@@ -530,25 +545,27 @@ const ProfileScreen = () => {
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                   <Text style={styles.label}>Tinggi (cm)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: '#000' }]}
                     value={String(editData.height || '')}
                     onChangeText={(text) => setEditData({
                       ...editData, 
                       height: text
                     })}
                     keyboardType="numeric"
+                    placeholderTextColor="#9ca3af"
                   />
                 </View>
                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
                   <Text style={styles.label}>Berat (kg)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: '#000' }]}
                     value={String(editData.weight || '')}
                     onChangeText={(text) => setEditData({
                       ...editData, 
                       weight: text
                     })}
                     keyboardType="numeric"
+                    placeholderTextColor="#9ca3af"
                   />
                 </View>
               </View>
@@ -826,6 +843,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
     minHeight: '60%',
+    maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -859,7 +877,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1f2937',
+    color: '#000000',
   },
   saveButton: {
     backgroundColor: '#3b82f6',

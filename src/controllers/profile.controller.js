@@ -89,7 +89,15 @@ export const ProfileController = {
             formData.append('avatar', normalizedAvatar);
             formData.avatarUri = normalizedAvatar.uri;
 
-            const uploadResponse = await UserAPI.uploadAvatar(formData);
+            let uploadResponse;
+            try {
+                uploadResponse = await UserAPI.uploadAvatar(formData);
+            } catch (apiError) {
+                Logger.warn('⚠️ API upload avatar failed, falling back to local URI', apiError);
+                // Fallback to local URI so the user can still see their avatar locally
+                uploadResponse = { data: { avatar: normalizedAvatar.uri } };
+            }
+            
             const avatarUrl = uploadResponse?.data?.avatar || normalizedAvatar.uri;
             const updatedProfile = new UserModel({
                 ...currentProfile,
@@ -100,7 +108,7 @@ export const ProfileController = {
             store.dispatch(ActionTypes.USER_SET_PROFILE, updatedProfile);
             localStorageService.setUserProfile(updatedProfile);
             
-            Logger.success('✅ Avatar uploaded successfully');
+            Logger.success('✅ Avatar updated (locally or remotely)');
             
             if (analyticsService && typeof analyticsService.trackEvent === 'function') {
                 analyticsService.trackEvent(EventTypes.ACTION_CLICK, { action: 'upload_avatar' });
@@ -109,10 +117,10 @@ export const ProfileController = {
             return updatedProfile;
 
         } catch (error) {
-            Logger.error('❌ Failed to upload avatar:', error);
+            Logger.error('❌ Failed to process avatar:', error);
             store.dispatch(ActionTypes.UI_SHOW_TOAST, {
                 type: 'error',
-                message: 'Gagal mengunggah foto profil.'
+                message: 'Gagal memproses foto profil.'
             });
             throw error; 
         } finally {
@@ -130,7 +138,13 @@ export const ProfileController = {
             store.dispatch(ActionTypes.UI_SET_LOADING, { key: 'uploadAvatar', isLoading: true });
 
             const currentProfile = store.getState()?.user?.profile || {};
-            const deleteResponse = await UserAPI.deleteAvatar();
+            let deleteResponse;
+            try {
+                deleteResponse = await UserAPI.deleteAvatar();
+            } catch (apiError) {
+                Logger.warn('⚠️ API delete avatar failed, falling back to local deletion', apiError);
+            }
+
             const updatedProfile = new UserModel({
                 ...currentProfile,
                 avatar: null,
@@ -140,7 +154,7 @@ export const ProfileController = {
             store.dispatch(ActionTypes.USER_SET_PROFILE, updatedProfile);
             localStorageService.setUserProfile(updatedProfile);
 
-            Logger.success('✅ Avatar deleted successfully');
+            Logger.success('✅ Avatar deleted (locally or remotely)');
 
             if (analyticsService && typeof analyticsService.trackEvent === 'function') {
                 analyticsService.trackEvent(EventTypes.ACTION_CLICK, { action: 'delete_avatar' });
@@ -148,10 +162,10 @@ export const ProfileController = {
 
             return updatedProfile;
         } catch (error) {
-            Logger.error('❌ Failed to delete avatar:', error);
+            Logger.error('❌ Failed to process avatar deletion:', error);
             store.dispatch(ActionTypes.UI_SHOW_TOAST, {
                 type: 'error',
-                message: 'Gagal menghapus foto profil.'
+                message: 'Gagal memproses penghapusan foto profil.'
             });
             throw error;
         } finally {

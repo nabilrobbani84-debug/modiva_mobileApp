@@ -11,11 +11,12 @@ import HBTrendNativeChart from '../components/charts/hb-trend.native';
 import { store } from '../../state/store';
 import { SchoolAPI } from '../../services/api/school.api';
 import { buildHemoglobinTrendPoints, getLatestHemoglobinLabel, getLatestHemoglobinValue } from '../../utils/helpers/hemoglobinHelpers';
+import { localStorageService } from '../../services/storage/local.storage';
 
 export default function HomeScreen() {
   const matchesUserSchool = (school, profile) => {
     if (!school || !profile) return false;
-    return school.id === profile.schoolId || school.kode === profile.schoolCode;
+    return school.id === 'active-school' || String(school.id) === String(profile.schoolId || profile.school_id) || String(school.kode) === String(profile.schoolCode || profile.school_code);
   };
 
   // State for User Data & Reports
@@ -74,12 +75,28 @@ export default function HomeScreen() {
             gps_koordinat: "-6.4018,106.819"
           }
         };
-        return fallbackSchools[id] || {
-          nama: fallbackName || "SMPN 1 Jakarta",
-          alamat: "Jl. Cikini Raya No.1, Cikini, Menteng, Jakarta Pusat",
-          kota: "Jakarta Pusat",
-          gps_koordinat: "-6.196241,106.836671"
-        };
+        
+        if (fallbackSchools[id]) {
+          return fallbackSchools[id];
+        }
+
+        if (fallbackName) {
+          const searchName = String(fallbackName).trim().toUpperCase();
+          const matchedKey = Object.keys(fallbackSchools).find(key => 
+            fallbackSchools[key].nama.trim().toUpperCase() === searchName
+          );
+          if (matchedKey) {
+            return fallbackSchools[matchedKey];
+          }
+        }
+
+        return {
+            id: schoolId || 'active-school',
+            nama: fallbackName || "Sekolah Tidak Diketahui",
+            alamat: "Alamat belum tersedia",
+            kota: "-",
+            gps_koordinat: null
+          };
       };
 
       const activeProfile = store.getState()?.user?.profile || AuthController.getCurrentUser() || {};
@@ -128,16 +145,23 @@ export default function HomeScreen() {
   // Helper values with defaults from user profile
   const consumptionCount = Number(user.consumptionCount ?? user.consumption_count ?? 0);
   const totalTarget = Number(user.totalTarget ?? user.total_target ?? 0);
-  const hbValue = user.hbLast || user.hb || 0; // Support both naming conventions
+  const hbValue = user.hbLast ?? user.hb ?? null; // Support both naming conventions
   
   const percentage = totalTarget > 0 ? Math.round((consumptionCount / totalTarget) * 100) : 0;
-  const hbTrendPoints = buildHemoglobinTrendPoints(reports, {
-    userId: user.id,
-    fallbackValue: hbValue,
-    fallbackDate: user.updatedAt || Date.now()
-  });
+  const cachedHBTrends = localStorageService.getHBTrendsCache(user.id || 'global');
+  let hbTrendPoints = cachedHBTrends?.points;
+  
+  if (!hbTrendPoints || hbTrendPoints.length === 0) {
+    hbTrendPoints = buildHemoglobinTrendPoints(reports, {
+      userId: user.id,
+      fallbackValue: hbValue,
+      fallbackDate: user.updatedAt || Date.now()
+    });
+  }
+
   const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints);
-  const displayHBValue = getLatestHemoglobinValue(hbTrendPoints, hbValue) ?? 0;
+  const rawHBValue = getLatestHemoglobinValue(hbTrendPoints, hbValue);
+  const displayHBValue = (rawHBValue && rawHBValue !== 0) ? rawHBValue : '-';
 
   // Cek Status Hari Ini
   const todayStr = new Date().toDateString();
@@ -280,7 +304,30 @@ export default function HomeScreen() {
                   <View>
                     <Text style={styles.historyDate}>
                         {(() => {
-                          const dateObj = new Date(item.date || item.timestamp || Date.now());
+                          let dateObj;
+                          if (item.date && typeof item.date === 'string') {
+                            const parts = item.date.split('-');
+                            if (parts.length === 3) {
+                              const year = parseInt(parts[0], 10);
+                              const month = parseInt(parts[1], 10) - 1;
+                              const day = parseInt(parts[2], 10);
+                              dateObj = new Date(year, month, day);
+                            }
+                          }
+                          
+                          if (!dateObj || isNaN(dateObj.getTime())) {
+                            dateObj = new Date(item.timestamp || Date.now());
+                          }
+                          
+                          const timeSource = item.timestamp || item.createdAt || item.created_at;
+                          if (timeSource) {
+                            const timeObj = new Date(timeSource);
+                            if (!isNaN(timeObj.getTime())) {
+                              dateObj.setHours(timeObj.getHours());
+                              dateObj.setMinutes(timeObj.getMinutes());
+                            }
+                          }
+
                           if (isNaN(dateObj.getTime())) return 'Tanggal tidak valid';
                           const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
                           const dayName = days[dateObj.getDay()];

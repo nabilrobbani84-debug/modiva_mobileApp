@@ -62,9 +62,11 @@ const environments = {
     label: 'Development',
     badgeColor: '#eab308', // yellow-500
     // Android Emulator uses 10.0.2.2 to access host localhost.
-    // FastAPI backend berjalan di port 8000.
-    // Untuk device fisik, ganti dengan IP lokal PC kamu (misal: http://192.168.x.x:8000/api)
-    apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || 'http://10.0.2.2:8000/api',
+    // Django backend (Auth) berjalan di port 8000
+    // FastAPI backend berjalan di port 8001
+    // Untuk device fisik, ganti dengan IP lokal PC kamu (misal: http://192.168.x.x:8001/api)
+    authUrl: getConfigValue('EXPO_PUBLIC_AUTH_URL') || 'http://10.0.2.2:8000/api',
+    apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || 'http://10.0.2.2:8001/api',
     // Mock API dimatikan secara default agar aplikasi langsung menggunakan FastAPI Backend
     useMockApi: toBoolean(getConfigValue('EXPO_PUBLIC_USE_MOCK_API', 'REACT_APP_USE_MOCK_API'), false),
     debug: true,
@@ -73,6 +75,7 @@ const environments = {
   staging: {
     label: 'Staging',
     badgeColor: '#a855f7', // purple-500
+    authUrl: getConfigValue('EXPO_PUBLIC_AUTH_URL') || 'https://staging-auth.modiva.com/api',
     apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || 'https://staging-api.modiva.com/api',
     useMockApi: false,
     debug: true,
@@ -84,6 +87,7 @@ const environments = {
     // Build production wajib diarahkan ke backend publik lewat EXPO_PUBLIC_API_URL.
     // Jika belum ada backend publik, aplikasi akan otomatis fallback ke mock mode
     // agar APK tidak rusak total saat dibuka user.
+    authUrl: getConfigValue('EXPO_PUBLIC_AUTH_URL') || '',
     apiUrl: getConfigValue('EXPO_PUBLIC_API_URL', 'REACT_APP_API_URL') || '',
     useMockApi: false,
     debug: false,

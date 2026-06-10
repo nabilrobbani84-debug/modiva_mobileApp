@@ -25,6 +25,7 @@ import { ReportController } from '../../controllers/report.controller';
 import { store } from '../../state/store';
 import { buildHemoglobinTrendPoints, getLatestHemoglobinLabel, getLatestHemoglobinValue } from '../../utils/helpers/hemoglobinHelpers';
 import HBTrendNativeChart from '../components/charts/hb-trend.native';
+import { localStorageService } from '../../services/storage/local.storage';
 
 // --- Theme Colors ---
 const COLORS = {
@@ -51,20 +52,42 @@ const formatReportDate = (value) => {
   };
 };
 
-const getDetailedDateString = (value) => {
-  const date = value ? new Date(value) : null;
-  if (!date || Number.isNaN(date.getTime())) return 'Tanggal tidak valid';
+const getDetailedDateString = (dateVal, timestampVal) => {
+  let dateObj;
+  if (dateVal && typeof dateVal === 'string') {
+    const parts = dateVal.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      dateObj = new Date(year, month, day);
+    }
+  }
+  
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    dateObj = new Date(dateVal || timestampVal || Date.now());
+  }
+  
+  if (timestampVal) {
+    const timeObj = new Date(timestampVal);
+    if (!isNaN(timeObj.getTime())) {
+      dateObj.setHours(timeObj.getHours());
+      dateObj.setMinutes(timeObj.getMinutes());
+    }
+  }
+
+  if (!dateObj || Number.isNaN(dateObj.getTime())) return 'Tanggal tidak valid';
   
   const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const dayName = days[date.getDay()];
-  const formattedDate = date.toLocaleDateString('id-ID', {
+  const dayName = days[dateObj.getDay()];
+  const formattedDate = dateObj.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   });
   
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
   const timeStr = `${hours}:${minutes} WIB`;
   
   return `${dayName}, ${formattedDate} - ${timeStr}`;
@@ -76,15 +99,22 @@ const ReportsScreen = () => {
     const state = store.getState();
     const currentUserId = state.user.profile?.id || null;
     const reportList = state.reports.list || [];
-    const trendPoints = buildHemoglobinTrendPoints(reportList, {
-      userId: currentUserId,
-      fallbackValue: state.user.hemoglobin?.current || state.user.profile?.hbLast || null,
-      fallbackDate: state.user.profile?.updatedAt || Date.now()
-    });
+    const cachedHBTrends = localStorageService.getHBTrendsCache(currentUserId);
+    let trendPoints = cachedHBTrends?.points;
+    
+    if (!trendPoints || trendPoints.length === 0) {
+      trendPoints = buildHemoglobinTrendPoints(reportList, {
+        userId: currentUserId,
+        fallbackValue: state.user.hemoglobin?.current || state.user.profile?.hbLast || null,
+        fallbackDate: state.user.profile?.updatedAt || Date.now()
+      });
+    }
+
+    const latestVal = getLatestHemoglobinValue(trendPoints, state.user.hemoglobin?.current || state.user.profile?.hbLast || null);
 
     setUserInfo(state.user.profile || { name: 'Siswa', nisn: '-' });
     setActiveUserId(currentUserId);
-    setCurrentHB(getLatestHemoglobinValue(trendPoints, state.user.hemoglobin?.current || state.user.profile?.hbLast || null) ?? '-');
+    setCurrentHB((latestVal && latestVal !== 0) ? latestVal : '-');
     setReports(reportList);
   }, []);
   
@@ -161,10 +191,15 @@ const ReportsScreen = () => {
     loadData();
   }, [loadData]);
 
-  const hbTrendPoints = buildHemoglobinTrendPoints(reports, {
-    userId: userInfo.id,
-    fallbackValue: currentHB === '-' ? null : currentHB
-  });
+  const cachedHBTrends = localStorageService.getHBTrendsCache(userInfo.id || 'global');
+  let hbTrendPoints = cachedHBTrends?.points;
+
+  if (!hbTrendPoints || hbTrendPoints.length === 0) {
+    hbTrendPoints = buildHemoglobinTrendPoints(reports, {
+      userId: userInfo.id,
+      fallbackValue: currentHB === '-' ? null : currentHB
+    });
+  }
   const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints);
 
   // --- Logic Download Excel ---
@@ -245,7 +280,7 @@ const ReportsScreen = () => {
 
   const getStatusText = (hbValue) => {
     const val = parseFloat(hbValue);
-    if (isNaN(val)) return 'Tidak Ada Data';
+    if (isNaN(val) || val === 0) return 'Belum Ada Data';
     if (val >= 12) return 'Normal';
     if (val >= 10) return 'Sedikit Rendah';
     return 'Anemia';
@@ -372,29 +407,23 @@ const ReportsScreen = () => {
               const isDone = report.status_konsumsi === 'sudah' || report.status === 'Selesai';
 
               return (
-              <View key={index} style={styles.reportItem}>
-                {/* Tanggal Box */}
-                <View style={styles.dateBox}>
-                  <Text style={styles.dateDay}>{formattedDate.day}</Text>
-                  <Text style={styles.dateMonth}>{formattedDate.month}</Text>
-                </View>
-                
-                {/* Detail */}
-                <View style={styles.reportDetail}>
-                  <Text style={styles.reportTitle} numberOfLines={1} ellipsizeMode="tail">
-                    Distribusi #{report.distribusiId || (String(report.id).startsWith('report-local-') ? 'Lokal' : report.id)}
-                  </Text>
-                  <Text style={styles.reportDateDetail}>{getDetailedDateString(report.date || report.timestamp)}</Text>
-                  <Text style={styles.reportNotes} numberOfLines={1}>
-                    {report.notes || (isDone ? 'Bukti minum tersimpan' : 'Menunggu laporan konsumsi')}
-                  </Text>
-                </View>
-
-                <View style={[styles.statusBadge, isDone ? styles.statusDone : styles.statusPending]}>
-                  <Text style={[styles.statusBadgeText, isDone ? styles.statusDoneText : styles.statusPendingText]}>
-                    {isDone ? 'Sudah' : 'Belum'}
-                  </Text>
-                </View>
+              <View key={index} style={styles.historyItem}>
+                  <View>
+                    <Text style={styles.historyDate}>
+                        {getDetailedDateString(report.date, report.timestamp || report.createdAt || report.created_at)}
+                    </Text>
+                    {/* Jika ada nilai HB di report, tampilkan. Jika tidak, hide atau tampilkan default */}
+                    {(report.hb || report.hbValue || report.hb_value) ? (
+                        <Text style={styles.historyHb}>Nilai HB: {report.hb || report.hbValue || report.hb_value} g/dL</Text>
+                    ) : (
+                        <Text style={styles.historyHb}>Konsumsi Vitamin</Text>
+                    )}
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: isDone ? '#dcfce7' : '#fef9c3' }]}>
+                    <Text style={[styles.badgeText, { color: isDone ? '#16a34a' : '#854d0e' }]}>
+                        {isDone ? 'Sudah' : 'Belum'}
+                    </Text>
+                  </View>
               </View>
               );
             })}
@@ -619,6 +648,42 @@ const styles = StyleSheet.create({
   // List
   listContainer: {
     gap: 12,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  historyDate: {
+    fontWeight: '500',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  historyHb: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   reportItem: {
     backgroundColor: COLORS.cardBg,

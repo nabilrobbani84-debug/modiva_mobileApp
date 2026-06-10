@@ -19,7 +19,7 @@ const normalizeRiwayatItem = (item = {}) => ({
     id: item.id,
     distribusiId: item.distribusi_id || item.id,
     userId: item.user_id || item.siswa_id || null,
-    date: item.tanggal_konsumsi || item.report_date || item.date || item.tgl_terima,
+    date: item.waktu_minum || item.tanggal_konsumsi || item.report_date || item.date || item.tgl_terima,
     receivedDate: item.tgl_terima || null,
     jumlah: item.jumlah || 1,
     status: item.status_konsumsi === 'sudah' ? 'Selesai' : (item.status_konsumsi || item.status || 'Belum'),
@@ -28,9 +28,9 @@ const normalizeRiwayatItem = (item = {}) => ({
     photoUrl: item.bukti_foto || item.photo_url || item.photoUrl || null,
     photo_url: item.bukti_foto || item.photo_url || item.photoUrl || null,
     notes: item.keterangan || item.notes || '',
-    created_at: item.created_at || item.tgl_terima || item.tanggal_konsumsi || null,
+    created_at: item.created_at || item.tgl_terima || item.waktu_minum || item.tanggal_konsumsi || null,
     updated_at: item.updated_at || null,
-    timestamp: new Date(item.tanggal_konsumsi || item.tgl_terima || item.created_at || Date.now()).getTime()
+    timestamp: new Date(item.timestamp || item.created_at || item.tgl_terima || item.waktu_minum || item.tanggal_konsumsi || Date.now()).getTime()
 });
 /**
  * Mock Report API

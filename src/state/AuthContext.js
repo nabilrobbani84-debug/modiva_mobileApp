@@ -10,7 +10,9 @@ import {
     getAuthToken,
     getUserData,
     saveAuthToken,
-    saveUserData
+    saveUserData,
+    getItem,
+    setItem
 } from '../utils/helpers/storageHelpers';
 
 // Initial state
@@ -113,6 +115,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const bootstrapAsync = async () => {
       try {
+        // Force session clear on major updates by checking a session version key
+        const CURRENT_SESSION_VERSION = '2'; // Bump to force logout for existing users
+        const storedSessionVersion = await getItem('@modiva_session_version');
+
+        if (storedSessionVersion !== CURRENT_SESSION_VERSION) {
+          await clearUserSession();
+          await setItem('@modiva_session_version', CURRENT_SESSION_VERSION);
+        }
+
         const storedToken = await getAuthToken();
         const storedUser = await getUserData();
 

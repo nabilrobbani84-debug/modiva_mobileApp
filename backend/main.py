@@ -1996,6 +1996,47 @@ def get_schools(
     data = [school_row_to_dict(row) for row in rows]
     return {"success": True, "data": data, "meta": {"total": len(data), "source": "mysql"}}
 
+@app.get("/api/vitamin/sekolah/siswahb")
+def get_vitamin_sekolah_siswahb(authorization: Optional[str] = Header(default=None)) -> dict[str, Any]:
+    user = get_current_user(authorization)
+    
+    query = """
+        SELECT 
+            u.nisn, 
+            u.name as nama_siswa, 
+            s.nama as sekolah, 
+            h.year_label as tahun, 
+            h.hb_value as hb, 
+            h.notes as keterangan,
+            u.id as siswa_id,
+            h.id as history_id
+        FROM user_hb_history h
+        JOIN users u ON h.user_id = u.id
+        LEFT JOIN schools s ON u.school_id = s.id
+        ORDER BY h.year_label DESC, u.name ASC
+    """
+    rows = fetch_all(query)
+    
+    data = []
+    for i, row in enumerate(rows):
+        data.append({
+            "no": i + 1,
+            "nis": row["nisn"],
+            "nama_siswa": row["nama_siswa"],
+            "sekolah": row["sekolah"] or "Unknown",
+            "tahun": row["tahun"],
+            "hb": float(row["hb"]) if row["hb"] is not None else None,
+            "keterangan": row["keterangan"] or "",
+            "aksi": "view"
+        })
+        
+    return {
+        "success": True,
+        "message": "Data HB Siswa berhasil diambil",
+        "data": data,
+        "total": len(data)
+    }
+
 
 @app.get("/api/sekolah/lokasi")
 def get_lokasi_sekolah_backend_modiva(authorization: Optional[str] = Header(default=None)) -> dict[str, Any]:

@@ -49,7 +49,7 @@ export default function TabLayout() {
         const completed = await AsyncStorage.getItem('@modiva_app_tour_completed');
         if (completed !== 'true') {
           // Mulai dengan mengarahkan ke tab pertama (Home)
-          router.push('/(tabs)');
+          router.navigate('/(tabs)');
           setShowTour(true);
         }
       } catch (e) {
@@ -198,7 +198,7 @@ export default function TabLayout() {
 
                 <TouchableOpacity style={styles.tourNextBtn} onPress={handleNext} activeOpacity={0.8}>
                   <Text style={styles.tourNextText}>
-                    {currentStep === TOUR_STEPS.length - 1 ? 'Mulai' : 'Lanjut'}
+                    {currentStep === TOUR_STEPS.length - 1 ? 'Mulai' : 'Next'}
                   </Text>
                   <Ionicons
                     name={currentStep === TOUR_STEPS.length - 1 ? 'rocket' : 'arrow-forward'}

@@ -164,7 +164,7 @@ cp .env.production.example .env.production
 docker compose -f docker-compose.vps.yml --env-file .env.production up -d --build
 ```
 
-Isi `PUBLIC_HOSTNAME` dan `PUBLIC_BASE_URL` di `.env.production` dengan domain backend publik kamu, misalnya `api.modiva.id`.
+Isi `PUBLIC_HOSTNAME` dan `PUBLIC_BASE_URL` di `.env.production` dengan domain backend publik kamu, misalnya `modiva.nurulfikri.id`.
 
 Panduan lengkap VPS ada di [deploy/VPS_DEPLOY.md](C:\project\mobile-app-modiva\mobile_tester\backend\deploy\VPS_DEPLOY.md).
 

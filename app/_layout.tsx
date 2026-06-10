@@ -12,6 +12,7 @@ import { AppConfig } from '../src/config/app.config';
 import { NotificationController } from '../src/controllers/notification.controller';
 import { AuthProvider, useAuth } from '../src/state/AuthContext';
 import { configureNativeNotificationHandler } from '../src/utils/helpers/nativeNotificationHelpers';
+import { OfflineBanner } from '../src/views/components/OfflineBanner';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -61,7 +62,8 @@ function AuthNavigationGuard() {
     const firstSegment = segments[0] ?? '';
     const isRootRoute = segments.length === 0;
     const isLoginRoute = firstSegment === 'login';
-    const isProtectedRoute = !isRootRoute && !isLoginRoute;
+    const isOnboardingRoute = firstSegment === 'onboarding';
+    const isProtectedRoute = !isRootRoute && !isLoginRoute && !isOnboardingRoute;
 
     if (!isAuthenticated && isProtectedRoute) {
       router.replace('/login');
@@ -115,6 +117,7 @@ export default function RootLayout() {
         <AppStartupEffects />
         <AuthNavigationGuard />
         <RuntimeModeBanner />
+        <OfflineBanner />
         <Stack>
           {/* Tambahkan ini: Sembunyikan header untuk halaman index (Splash) */}
           <Stack.Screen name="index" options={{ headerShown: false }} />

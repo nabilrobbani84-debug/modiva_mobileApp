@@ -66,6 +66,12 @@ const getApiBaseUrl = () => {
          '';
 };
 
+const getAuthBaseUrl = () => {
+  return AppConfig?.environment?.authUrl || 
+         process.env.REACT_APP_AUTH_URL || 
+         '';
+};
+
 const getUseMockApi = () => {
   return AppConfig?.environment?.useMockApi !== undefined 
     ? AppConfig.environment.useMockApi 
@@ -80,6 +86,11 @@ const getPerformanceConfig = (key, defaultValue) => {
  * Base API URL
  */
 export const API_BASE_URL = getApiBaseUrl();
+
+/*
+ * Base Auth URL (Django)
+ */
+export const AUTH_BASE_URL = getAuthBaseUrl();
 
 /*
  * API Version
@@ -104,12 +115,15 @@ Logger.debug('📋 API Configuration:', {
  */
 export const ApiEndpoints = {
   auth: {
-    loginSiswa: { url: '/login', method: 'POST', timeout: 15000 }
+    // Django endpoint uses full URL to avoid fallback to FastAPI base
+    loginSiswa: { url: '/login/', method: 'POST', timeout: 15000 }
   },
   user: {
     getProfile: { url: '/siswa/profile', method: 'GET', timeout: 15000 },
     updateProfile: { url: '/siswa/edit-profile', method: 'PUT', timeout: 15000 },
-    getHb: { url: '/siswa/hb', method: 'GET', timeout: 10000 }
+    getHb: { url: '/siswa/hb', method: 'GET', timeout: 10000 },
+    uploadAvatar: { url: '/users/profile/avatar', method: 'POST', timeout: 30000 },
+    deleteAvatar: { url: '/users/profile/avatar', method: 'DELETE', timeout: 15000 }
   },
   reports: {
     submit: { url: '/ttd', method: 'POST', timeout: 30000 },
@@ -117,7 +131,8 @@ export const ApiEndpoints = {
     getById: { url: '/riwayat-konsumsi/:id', method: 'GET', timeout: 5000 }
   },
   schools: {
-    getLocation: { url: '/sekolah/lokasi', method: 'GET', timeout: 5000 }
+    getLocation: { url: '/sekolah/lokasi', method: 'GET', timeout: 5000 },
+    getSiswahb: { url: '/vitamin/sekolah/siswahb', method: 'GET', timeout: 10000 }
   }
 };
 

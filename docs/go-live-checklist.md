@@ -79,8 +79,8 @@ Last updated: 2026-05-16
 | APK release artifact tersedia | Done | Artifact lama tersedia pada `11/05/2026 18:21:18`. |
 | APK release terbaru berhasil dibuild dari source terbaru | Blocked | Build production env lulus, tetapi build release terbaru belum selesai dan artifact belum berubah dari `11/05/2026 18:21:18`. |
 | APK release terbaru terpasang di device uji | Not Started | Belum ada bukti instalasi device pada checklist ini. |
-| APK dapat reach backend production | Blocked | `https://api.modiva.id/health` belum resolve saat dicek; APK production belum bisa reach API publik. |
-| Base URL backend final sudah dipastikan | Blocked | `.env.production` sudah mengarah ke `https://api.modiva.id/api`, tetapi domain belum resolve. `.env` lokal masih memakai IP private untuk development. |
+| APK dapat reach backend production | Blocked | `https://modiva.nurulfikri.id/health` belum resolve saat dicek; APK production belum bisa reach API publik. |
+| Base URL backend final sudah dipastikan | Blocked | `.env.production` sudah mengarah ke `https://modiva.nurulfikri.id/api`, tetapi domain belum resolve. `.env` lokal masih memakai IP private untuk development. |
 | `npm run validate:production-env` lolos | Done | Validasi production env sukses pada 2026-05-15/2026-05-16. |
 | `npm run lint` tidak memiliki error | Done | Lint sukses dengan 31 warning, 0 error. |
 | Uji minimal pada device Android nyata | Not Started | Belum terdokumentasi. |
@@ -89,7 +89,7 @@ Last updated: 2026-05-16
 
 | Item | Status | Notes |
 | --- | --- | --- |
-| Backend memakai domain/server stabil | Blocked | `api.modiva.id` belum resolve dari mesin pengembangan saat dicek. |
+| Backend memakai domain/server stabil | Blocked | `modiva.nurulfikri.id` belum resolve dari mesin pengembangan saat dicek. |
 | File upload punya strategi penyimpanan aman | In Progress | Saat ini masih file lokal backend. |
 | Logging error backend tersedia | In Progress | Ada log file lokal, belum jelas strategi produksi. |
 | Backup/restore database dipikirkan | Not Started | Belum terdokumentasi. |

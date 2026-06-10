@@ -56,22 +56,19 @@ export const SchoolAPI = {
     
     try {
       const state = store.getState();
-      const schoolId = state?.user?.profile?.schoolId || state?.user?.profile?.school_id;
-      
-      if (!schoolId) {
-        throw new Error('ID Sekolah tidak ditemukan pada profil pengguna.');
-      }
+      const schoolId = state?.user?.profile?.schoolId || state?.user?.profile?.school_id || 'active-school';
 
-      const response = await apiService.get(`/schools/${schoolId}`, {
-        timeout: 5000,
+      const endpoint = ApiEndpoints.schools.getLocation;
+      const response = await apiService.get(endpoint.url, {
+        timeout: endpoint.timeout || 5000,
         cache: false
       });
       
       const detailData = response?.data || response;
-      if (detailData && detailData.id) {
+      if (detailData && (detailData.id || detailData.nama_sekolah || detailData.nama)) {
         return {
           success: true,
-          data: normalizeSchoolLocation(detailData),
+          data: normalizeSchoolLocation({ ...detailData, id: detailData.id || schoolId || 'active-school' }),
         };
       }
       
@@ -93,6 +90,24 @@ export const SchoolAPI = {
 
   async getById() {
     return await this.getLocation();
+  },
+
+  async getSiswahb() {
+    Logger.info('📍 SchoolAPI.getSiswahb()');
+    try {
+      const endpoint = ApiEndpoints.schools.getSiswahb;
+      const response = await apiService.get(endpoint.url, {
+        timeout: endpoint.timeout || 10000,
+        cache: false
+      });
+      return {
+        success: true,
+        data: response?.data || response,
+      };
+    } catch (e) {
+      Logger.error('Gagal memuat data HB Siswa dari backend.', e?.message || e);
+      throw e;
+    }
   },
 };
 

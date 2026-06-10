@@ -19,7 +19,7 @@ Keputusan rilis saat ini: `Belum siap rilis 100%`
 
 Alasan utama:
 
-- backend production `https://api.modiva.id` belum resolve saat dicek
+- backend production `https://modiva.nurulfikri.id` belum resolve saat dicek
 - APK release terbaru belum berhasil dibuild ulang dari source terbaru
 - APK release belum diuji lengkap di device Android nyata
 - UAT stakeholder belum dilakukan
@@ -80,7 +80,7 @@ Alasan utama:
 | T-009 | PB-007 | Build ulang APK release setelah seluruh pengujian sprint selesai. | Mobile | Blocked | Build production lulus validasi env, tetapi build release terbaru belum selesai; artefak release masih tanggal 2026-05-11 18:21. |
 | T-010 | PB-002, PB-003, PB-004, PB-005 | Dokumentasikan hasil uji sprint dan issue terbuka. | QA | In Progress | Go-live checklist sudah ada; perlu bukti device dan UAT. |
 | T-011 | PB-002, PB-003, PB-004, PB-005 | Lengkapi checklist go-live dan gunakan sebagai dasar keputusan rilis. | QA + PO | In Progress | Checklist sudah diperbarui, keputusan masih belum siap rilis. |
-| T-012 | PB-006 | Deploy backend ke domain HTTPS publik. | DevOps + Backend | Blocked | `https://api.modiva.id/health` belum resolve saat dicek dari mesin pengembangan. |
+| T-012 | PB-006 | Deploy backend ke domain HTTPS publik. | DevOps + Backend | Blocked | `https://modiva.nurulfikri.id/health` belum resolve saat dicek dari mesin pengembangan. |
 | T-013 | PB-006 | Validasi backend production `/health`, login, profile, report, notifications, dan schools. | Backend + QA | Blocked | Menunggu domain/backend production aktif. |
 | T-014 | PB-007 | Install APK release terbaru di device Android nyata. | Mobile + QA | Blocked | Menunggu APK release terbaru berhasil dibuild. |
 | T-015 | PB-009 | Jalankan UAT stakeholder dan catat acceptance. | PO + QA | Todo | Menunggu backend production dan APK release terbaru. |
@@ -123,7 +123,7 @@ Alasan utama:
 
 - Done: Product backlog, sprint backlog, status task, risk log, decision log, dan go-live checklist disinkronkan.
 - Next: Deploy/aktifkan backend production, build ulang APK release, dan mulai device testing.
-- Blocker: `api.modiva.id` belum resolve; build APK release terbaru belum menghasilkan artefak baru; UAT belum bisa dilakukan.
+- Blocker: `modiva.nurulfikri.id` belum resolve; build APK release terbaru belum menghasilkan artefak baru; UAT belum bisa dilakukan.
 - Decisions: Status rilis tetap `Belum siap rilis 100%` sampai blocker release-critical selesai.
 
 ## Sprint Review

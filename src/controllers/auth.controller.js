@@ -10,6 +10,7 @@ import { AuthAPI } from '../services/api/auth.api.js';
 import { localStorageService } from '../services/storage/local.storage.js';
 import { ActionTypes, store } from '../state/store.js';
 import { clearRememberMe, clearReportsCache, clearUserSession } from '../utils/helpers/storageHelpers.js';
+import { apiService } from '../services/api/api.services.js';
 import { Logger } from '../utils/logger.js';
 /**
  * Authentication Controller
@@ -141,6 +142,12 @@ export const AuthController = {
                 await clearRememberMe();
             } catch (error) {
                 Logger.warn('⚠️ Failed to clear persisted session during logout:', error);
+            }
+
+            try {
+                apiService.clearCache();
+            } catch (error) {
+                Logger.warn('⚠️ Failed to clear api cache during logout:', error);
             }
 
             // Clear state at the end so app always returns to logged-out state

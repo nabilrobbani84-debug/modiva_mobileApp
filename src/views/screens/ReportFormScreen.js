@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView } from 'react-native';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { ReportController } from '../../controllers/report.controller';
 import { ReportAPI } from '../../services/api/report.api';
 import { parseLocalDate, toLocalDateString } from '../../utils/helpers/dateHelpers';
@@ -22,6 +23,9 @@ const formatDateValue = (value) => {
 export default function ReportFormScreen() {
   const router = useRouter();
   const scrollViewRef = useRef(null);
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.type !== 'unknown' && netInfo.isConnected === false;
+  
   const draft = useMemo(() => ReportController.loadReportDraft() || {}, []);
   const [date, setDate] = useState(draft.date ? parseLocalDate(draft.date) : new Date());
   const [notes, setNotes] = useState(draft.notes || '');
@@ -76,6 +80,14 @@ export default function ReportFormScreen() {
   };
 
   const handleSubmit = async () => {
+    if (isOffline) {
+      Alert.alert(
+        'Koneksi Terputus',
+        'Tidak dapat mengirim laporan. Silakan periksa koneksi internet Anda.'
+      );
+      return;
+    }
+
     if (isSubmitting) {
       return;
     }
@@ -129,6 +141,7 @@ export default function ReportFormScreen() {
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           automaticallyAdjustKeyboardInsets={true}
         >
           <View style={styles.card}>
@@ -189,12 +202,12 @@ export default function ReportFormScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+            style={[styles.submitButton, (isSubmitting || isOffline) && styles.submitButtonDisabled]}
             onPress={handleSubmit}
             disabled={isSubmitting}
           >
             <Text style={styles.submitButtonText}>
-              {isSubmitting ? 'Mengirim...' : 'Kirim Laporan'}
+              {isSubmitting ? 'Mengirim...' : isOffline ? 'Kirim Laporan (Offline)' : 'Kirim Laporan'}
             </Text>
           </TouchableOpacity>
         </ScrollView>

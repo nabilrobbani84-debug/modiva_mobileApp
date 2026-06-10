@@ -193,6 +193,10 @@ export const UserAPI = {
             const response = await apiService.put(endpoint.url, toBackendProfilePayload(data), {
                 timeout: endpoint.timeout
             });
+            
+            // Clear API cache to ensure fresh data is fetched on subsequent requests
+            apiService.clearCache();
+            
             return {
                 ...response,
                 success: response?.success !== false,
@@ -212,7 +216,25 @@ export const UserAPI = {
      * @returns {Promise<object>} - Upload response
      */
     async uploadAvatar(formData) {
-        throw new Error('Upload foto profil tidak tersedia pada API backend_modiva.');
+        if (USE_MOCK_API) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return { success: true, message: 'Mock avatar upload successful', data: { avatar: 'mock-avatar-url.jpg' } };
+        }
+        
+        const endpoint = ApiEndpoints.user.uploadAvatar;
+        if (!endpoint) {
+            throw new Error('Endpoint upload avatar belum dikonfigurasi.');
+        }
+
+        try {
+            const response = await apiService.upload(endpoint.url, formData, {
+                timeout: endpoint.timeout
+            });
+            apiService.clearCache();
+            return response;
+        } catch (error) {
+            throw error;
+        }
     },
 
     /**
@@ -220,7 +242,25 @@ export const UserAPI = {
      * @returns {Promise<object>} - Delete response
      */
     async deleteAvatar() {
-        throw new Error('Hapus foto profil tidak tersedia pada API backend_modiva.');
+        if (USE_MOCK_API) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return { success: true, message: 'Mock avatar deleted' };
+        }
+        
+        const endpoint = ApiEndpoints.user.deleteAvatar;
+        if (!endpoint) {
+            throw new Error('Endpoint hapus avatar belum dikonfigurasi.');
+        }
+
+        try {
+            const response = await apiService.delete(endpoint.url, {
+                timeout: endpoint.timeout
+            });
+            apiService.clearCache();
+            return response;
+        } catch (error) {
+            throw error;
+        }
     },
 
     async getHemoglobin() {

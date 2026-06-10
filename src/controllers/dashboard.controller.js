@@ -184,8 +184,13 @@ export const DashboardController = {
         try {
             const userId = store.getState()?.user?.profile?.id || 'global';
             const currentProfile = store.getState()?.user?.profile || {};
+            const trendsWithUserId = (Array.isArray(trendsData) ? trendsData : []).map(item => ({
+                ...item,
+                userId: item.userId || item.user_id || userId
+            }));
+            
             const trendPoints = buildHemoglobinTrendPoints(
-                Array.isArray(trendsData) ? trendsData : [],
+                trendsWithUserId,
                 {
                     userId,
                     fallbackValue: currentProfile?.hbLast || currentProfile?.hb || null,

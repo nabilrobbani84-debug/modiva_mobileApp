@@ -11,7 +11,7 @@ Panduan ini menyiapkan backend FastAPI + MySQL + HTTPS publik di VPS memakai Doc
 ## Prasyarat
 
 - VPS Linux Ubuntu 22.04 atau 24.04
-- domain atau subdomain publik, misalnya `api.modiva.id`
+- domain atau subdomain publik, misalnya `modiva.nurulfikri.id`
 - DNS `A record` domain mengarah ke IP VPS
 
 ## 1. Install Docker di VPS

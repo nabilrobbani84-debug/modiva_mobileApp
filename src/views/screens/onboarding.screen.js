@@ -153,7 +153,7 @@ export default function OnboardingScreen() {
               style={styles.btnNextGradient}
             >
               <Text style={styles.btnText}>
-                {activeIndex === TUTORIAL_SLIDES.length - 1 ? 'Mulai Sekarang' : 'Lanjut'}
+                {activeIndex === TUTORIAL_SLIDES.length - 1 ? 'Mulai Sekarang' : 'Next'}
               </Text>
               <Ionicons
                 name={activeIndex === TUTORIAL_SLIDES.length - 1 ? 'rocket-outline' : 'arrow-forward'}

@@ -383,8 +383,14 @@ export const ReportController = {
                 const reports = mergeReportsByRecency(scopedReports, cachedReports, userId);
                 store.dispatch(ActionTypes.REPORT_SET_LIST, reports);
 
+                const rawTrends = response.data.hb_trends || reports;
+                const trendsWithUserId = (Array.isArray(rawTrends) ? rawTrends : []).map(item => ({
+                    ...item,
+                    userId: item.userId || item.user_id || userId
+                }));
+
                 const hbTrendPoints = buildHemoglobinTrendPoints(
-                    response.data.hb_trends || reports,
+                    trendsWithUserId,
                     {
                         userId,
                         fallbackValue: store.getState()?.user?.profile?.hbLast || null

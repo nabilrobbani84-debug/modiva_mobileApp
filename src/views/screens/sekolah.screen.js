@@ -181,33 +181,19 @@ function SchoolCard({ school, isSelected, onPress }) {
 
         {/* Badges */}
         <View style={styles.schoolBadgeRow}>
-          <View style={[styles.badge, { backgroundColor: (AKREDITASI_COLOR[school.akreditasi] || '#6b7280') + '22' }]}>
-            <Text style={[styles.badgeText, { color: AKREDITASI_COLOR[school.akreditasi] || '#6b7280' }]}>
-              Akreditasi {school.akreditasi}
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: '#f0f9ff' }]}>
-            <Ionicons name="people" size={11} color="#0ea5e9" />
-            <Text style={[styles.badgeText, { color: '#0ea5e9', marginLeft: 3 }]}>
-              {school.jumlah_siswa} Siswa
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: '#f0fdf4' }]}>
-            <Text style={[styles.badgeText, { color: '#16a34a' }]}>NPSN: {school.npsn}</Text>
-          </View>
+          {school.jumlah_siswa && school.jumlah_siswa > 0 ? (
+            <View style={[styles.badge, { backgroundColor: '#f0f9ff' }]}>
+              <Ionicons name="people" size={11} color="#0ea5e9" />
+              <Text style={[styles.badgeText, { color: '#0ea5e9', marginLeft: 3 }]}>
+                {school.jumlah_siswa} Siswa Terdata
+              </Text>
+            </View>
+          ) : null}
         </View>
 
-        {/* Phone & Action */}
+        {/* Action (if any future need) */}
         <View style={[styles.schoolFooter, { justifyContent: 'flex-start' }]}>
-          {school.telepon ? (
-            <TouchableOpacity
-              style={styles.phoneBtn}
-              onPress={() => Linking.openURL(`tel:${school.telepon.replace(/\D/g, '')}`)}
-            >
-              <Ionicons name="call-outline" size={12} color="#2563eb" />
-              <Text style={styles.phoneBtnText}>{school.telepon}</Text>
-            </TouchableOpacity>
-          ) : <View />}
+          <View />
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -235,14 +221,8 @@ function SchoolDetailModal({ school, visible, onClose }) {
           <ScrollView style={styles.modalBody}>
             {[
               { icon: 'location-outline', label: 'Alamat', val: school.alamat },
-              { icon: 'business-outline', label: 'Kota', val: `${school.kota}, ${school.provinsi}` },
-              { icon: 'mail-outline', label: 'Kode Pos', val: school.kode_pos },
-              { icon: 'call-outline', label: 'Telepon', val: school.telepon || '-' },
-              { icon: 'at-outline', label: 'Email', val: school.email || '-' },
-              { icon: 'person-outline', label: 'Kepala Sekolah', val: school.kepala_sekolah || '-' },
-              { icon: 'ribbon-outline', label: 'Akreditasi', val: school.akreditasi || '-' },
-              { icon: 'id-card-outline', label: 'NPSN', val: school.npsn || '-' },
-              { icon: 'navigate-outline', label: 'Koordinat', val: `${school.latitude}, ${school.longitude}` },
+              { icon: 'business-outline', label: 'Kota', val: `${school.kota || ''}${school.provinsi ? `, ${school.provinsi}` : ''}`.trim() || '-' },
+              { icon: 'navigate-outline', label: 'Koordinat', val: `${school.latitude || '-'}, ${school.longitude || '-'}` },
               { icon: 'people-outline', label: 'Siswa Terdata', val: `${school.jumlah_siswa || 0} siswa` },
             ].map((item) => (
               <View key={item.label} style={styles.detailRow}>
@@ -290,7 +270,7 @@ export default function SekolahScreen() {
 
   const matchesUserSchool = (school, profile) => {
     if (!school || !profile) return false;
-    return school.id === profile.schoolId || school.kode === profile.schoolCode;
+    return school.id === 'active-school' || String(school.id) === String(profile.schoolId || profile.school_id) || String(school.kode) === String(profile.schoolCode || profile.school_code);
   };
 
   const [schools, setSchools] = useState([]);
@@ -301,6 +281,9 @@ export default function SekolahScreen() {
   const [searchText, setSearchText] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   const [mapHtml, setMapHtml] = useState('');
+  
+  const [siswahbData, setSiswahbData] = useState([]);
+  const [loadingSiswahb, setLoadingSiswahb] = useState(false);
 
   // Ambil sekolah user saat ini dari store dengan state & subscribe
   const [userProfile, setUserProfile] = useState(store.getState()?.user?.profile || {});
@@ -319,6 +302,23 @@ export default function SekolahScreen() {
   }, []);
 
   const loadSchools = useCallback(async () => {
+    const findFallbackSchool = (schoolId, schoolName, schoolsDict) => {
+      const id = String(schoolId || '').toUpperCase();
+      if (schoolsDict[id]) {
+        return schoolsDict[id];
+      }
+      if (schoolName) {
+        const searchName = String(schoolName).trim().toUpperCase();
+        const matchedKey = Object.keys(schoolsDict).find(key => 
+          schoolsDict[key].nama.trim().toUpperCase() === searchName
+        );
+        if (matchedKey) {
+          return schoolsDict[matchedKey];
+        }
+      }
+      return null;
+    };
+
     try {
       const res = await SchoolAPI.getAll().catch(() => ({ success: false }));
       let schoolList = [];
@@ -440,9 +440,26 @@ export default function SekolahScreen() {
       };
 
       if (schoolList.length === 0) {
-        const fallbackSchool = fallbackSchools[String(userSchoolId || '').toUpperCase()] || fallbackSchools["SMPN1JKT"];
-        schoolList = [fallbackSchool];
-        setSelectedSchool(fallbackSchool);
+        const fbSchool = findFallbackSchool(userSchoolId, userProfile?.school, fallbackSchools);
+        if (fbSchool) {
+          schoolList = [fbSchool];
+          setSelectedSchool(fbSchool);
+        } else {
+          const dummySchool = {
+            id: userSchoolId || 'active-school',
+            nama: userProfile?.school || "Sekolah Tidak Diketahui",
+            alamat: "Alamat belum tersedia",
+            kota: "-",
+            provinsi: "-",
+            akreditasi: "-",
+            jumlah_siswa: 0,
+            npsn: "-",
+            latitude: null,
+            longitude: null
+          };
+          schoolList = [dummySchool];
+          setSelectedSchool(dummySchool);
+        }
       }
 
       setSchools(schoolList);
@@ -550,16 +567,53 @@ export default function SekolahScreen() {
           jenjang: "SMA"
         }
       };
-      const fallbackSchool = fallbackSchools[String(userSchoolId || '').toUpperCase()] || fallbackSchools["SMPN1JKT"];
-      setSchools([fallbackSchool]);
-      setSelectedSchool(fallbackSchool);
+      const fbSchool = findFallbackSchool(userSchoolId, userProfile?.school, fallbackSchools);
+      if (fbSchool) {
+        setSchools([fbSchool]);
+        setSelectedSchool(fbSchool);
+      } else {
+        const dummySchool = {
+          id: userSchoolId || 'active-school',
+          nama: userProfile?.school || "Sekolah Tidak Diketahui",
+          alamat: "Alamat belum tersedia",
+          kota: "-",
+          provinsi: "-",
+          akreditasi: "-",
+          jumlah_siswa: 0,
+          npsn: "-",
+          latitude: null,
+          longitude: null
+        };
+        setSchools([dummySchool]);
+        setSelectedSchool(dummySchool);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, [userProfile, userSchoolCode, userSchoolId]);
 
-  useEffect(() => { loadSchools(); }, [loadSchools]);
+  const loadSiswahb = useCallback(async () => {
+    setLoadingSiswahb(true);
+    try {
+      const res = await SchoolAPI.getSiswahb();
+      if (res && res.success && res.data) {
+        setSiswahbData(res.data);
+      } else {
+        setSiswahbData([]);
+      }
+    } catch (e) {
+      console.warn('Gagal memuat data siswahb:', e);
+      setSiswahbData([]);
+    } finally {
+      setLoadingSiswahb(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSchools();
+    loadSiswahb();
+  }, [loadSchools, loadSiswahb]);
 
   // Update map HTML saat schools atau selected berubah
   useEffect(() => {
@@ -696,6 +750,43 @@ export default function SekolahScreen() {
                   />
                 ))
               )}
+
+              {/* Data HB Siswa Table */}
+              {(!loadingSiswahb && siswahbData.length === 0) ? null : (
+                <View style={styles.hbTableContainer}>
+                  <Text style={styles.sectionLabel}>🩸 Data HB Siswa</Text>
+                  {loadingSiswahb ? (
+                    <ActivityIndicator size="small" color="#2563eb" style={{ marginTop: 20 }} />
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tableScrollView}>
+                    <View>
+                      {/* Table Header */}
+                      <View style={[styles.tableRow, styles.tableHeader]}>
+                        <Text style={[styles.tableCell, styles.tableCellHeader, { width: 40 }]}>No</Text>
+                        <Text style={[styles.tableCell, styles.tableCellHeader, { width: 100 }]}>NIS</Text>
+                        <Text style={[styles.tableCell, styles.tableCellHeader, { width: 150 }]}>Nama Siswa</Text>
+                        <Text style={[styles.tableCell, styles.tableCellHeader, { width: 120 }]}>Tanggal Input</Text>
+                        <Text style={[styles.tableCell, styles.tableCellHeader, { width: 80 }]}>Kadar HB</Text>
+                        <Text style={[styles.tableCell, styles.tableCellHeader, { width: 120 }]}>Keterangan</Text>
+                      </View>
+                      {/* Table Body */}
+                      {siswahbData.map((item, idx) => (
+                        <View key={idx} style={[styles.tableRow, idx % 2 === 1 && styles.tableRowAlt]}>
+                          <Text style={[styles.tableCell, { width: 40 }]}>{item.no || idx + 1}</Text>
+                          <Text style={[styles.tableCell, { width: 100 }]}>{item.nis || '-'}</Text>
+                          <Text style={[styles.tableCell, { width: 150 }]} numberOfLines={1}>{item.nama_siswa || item.nama || '-'}</Text>
+                          <Text style={[styles.tableCell, { width: 120 }]}>{item.tanggal_input || '-'}</Text>
+                          <Text style={[styles.tableCell, { width: 80, fontWeight: 'bold', color: item.kadar_hb && item.kadar_hb < 12 ? '#dc2626' : '#16a34a' }]}>
+                            {item.kadar_hb || '-'}
+                          </Text>
+                          <Text style={[styles.tableCell, { width: 120 }]}>{item.keterangan_hb || item.keterangan || '-'}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </ScrollView>
+                )}
+              </View>
+              )}
             </ScrollView>
           )}
         </>
@@ -757,11 +848,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563eb', paddingHorizontal: 16, paddingVertical: 8,
     borderRadius: 8,
   },
-  mapDetailBtnText: { color: 'white', fontWeight: '600', fontSize: 13 },
+  // Table Styles
+  hbTableContainer: { marginTop: 24, paddingHorizontal: 20 },
+  tableScrollView: { marginTop: 12, backgroundColor: 'white', borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', overflow: 'hidden' },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#f3f4f6', paddingVertical: 12, paddingHorizontal: 16 },
+  tableRowAlt: { backgroundColor: '#f9fafb' },
+  tableHeader: { backgroundColor: '#eff6ff', borderBottomWidth: 2, borderBottomColor: '#bfdbfe' },
+  tableCell: { fontSize: 13, color: '#374151', marginRight: 12 },
+  tableCellHeader: { fontWeight: 'bold', color: '#1d4ed8' },
+  
+  // Section Label
+  sectionLabel: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', marginHorizontal: 20, marginTop: 20, marginBottom: 8 },
 
   // List
-  listContainer: { flex: 1, padding: 16 },
-  sectionLabel: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  listContainer: { flex: 1 },
   mySchoolSection: { marginBottom: 16 },
 
   // School Card

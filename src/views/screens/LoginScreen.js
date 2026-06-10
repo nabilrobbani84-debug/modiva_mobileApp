@@ -16,6 +16,9 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// --- IMPORT NETINFO ---
+import { useNetInfo } from '@react-native-community/netinfo';
+
 // --- IMPORT AUTH CONTEXT ---
 import { useAuth } from '../../state/AuthContext'; 
 import { AppConfig } from '../../config/app.config';
@@ -32,6 +35,8 @@ const LoginScreen = () => {
   const { login } = useAuth(); 
   const isDemoMode = AppConfig.environment.useMockApi && AppConfig.currentEnv === 'production';
   const isProductionMisconfigured = AppConfig.release.isProductionApiMisconfigured;
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.type !== 'unknown' && netInfo.isConnected === false;
 
   // State Data
   const [nis, setNis] = useState('');
@@ -206,14 +211,19 @@ const LoginScreen = () => {
                 {/* TOMBOL LOGIN */}
                 <TouchableOpacity
                   onPress={handleLogin}
-                  disabled={isLoading}
+                  disabled={isLoading || isOffline}
                   activeOpacity={0.8}
-                  style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
+                  style={[
+                    styles.loginButton, 
+                    (isLoading || isOffline) && { opacity: 0.7, backgroundColor: isOffline ? '#9CA3AF' : '#2563EB' }
+                  ]}
                 >
                   {isLoading ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.loginButtonText}>MASUK</Text>
+                    <Text style={styles.loginButtonText}>
+                      {isOffline ? 'TIDAK ADA INTERNET' : 'MASUK'}
+                    </Text>
                   )}
                 </TouchableOpacity>
 
