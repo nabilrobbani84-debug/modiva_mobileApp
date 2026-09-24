@@ -25,8 +25,11 @@ export default function HBTrendNativeChart({
   }
 
   const values = points.map((point) => point.value);
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  const hasRange = rawMax > rawMin;
+  const minValue = hasRange ? rawMin : Math.max(0, rawMin - 2);
+  const maxValue = hasRange ? rawMax : rawMax + 2;
   const valueRange = Math.max(maxValue - minValue, 1);
   const chartInnerWidth = CHART_WIDTH - (PADDING_X * 2);
   const chartInnerHeight = CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
@@ -34,9 +37,12 @@ export default function HBTrendNativeChart({
 
   const chartPoints = points.map((point, index) => {
     const normalizedValue = (point.value - minValue) / valueRange;
+    const x = points.length === 1 
+      ? CHART_WIDTH / 2 
+      : PADDING_X + (stepX * index);
     return {
       ...point,
-      x: PADDING_X + (stepX * index),
+      x,
       y: PADDING_TOP + ((1 - normalizedValue) * chartInnerHeight)
     };
   });

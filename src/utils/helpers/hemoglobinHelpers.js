@@ -82,34 +82,48 @@ export const buildHemoglobinTrendPoints = (reports = [], options = {}) => {
 
   const selectedReports = filteredReports.slice(-maxPoints);
   const points = selectedReports.map((report, index) => {
-    const dateSource = report.date || report.createdAt || report.created_at || report.timestamp;
-    const date = new Date(dateSource);
+    const rawDate = report.date || report.createdAt || report.created_at || report.timestamp;
+    let label = `Data ${index + 1}`;
+    let fullDate = '-';
+
+    if (rawDate) {
+      if (typeof rawDate === 'string' && /^\d{4}$/.test(rawDate.trim())) {
+        label = rawDate.trim();
+        fullDate = `Tahun ${rawDate.trim()}`;
+      } else {
+        const dateObj = new Date(rawDate);
+        if (!Number.isNaN(dateObj.getTime())) {
+          label = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+          fullDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+      }
+    }
 
     return {
       id: report.id || `hb-point-${index}`,
       value: report.hbValue,
-      label: Number.isNaN(date.getTime())
-        ? `Data ${index + 1}`
-        : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }),
-      fullDate: Number.isNaN(date.getTime())
-        ? '-'
-        : date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+      label,
+      fullDate,
       timestamp: report.timestamp
     };
   });
 
   if (points.length === 0 && toNumber(fallbackValue) != null) {
     const fallbackPointDate = fallbackDate ? new Date(fallbackDate) : new Date();
+    const isValidDate = !Number.isNaN(fallbackPointDate.getTime());
+    const label = isValidDate 
+      ? fallbackPointDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+      : 'Hari ini';
+    const fullDate = isValidDate
+      ? fallbackPointDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+      : 'Hari ini';
+
     points.push({
       id: 'hb-fallback',
       value: Number(fallbackValue),
-      label: Number.isNaN(fallbackPointDate.getTime())
-        ? 'Hari ini'
-        : fallbackPointDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }),
-      fullDate: Number.isNaN(fallbackPointDate.getTime())
-        ? 'Hari ini'
-        : fallbackPointDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-      timestamp: fallbackPointDate.getTime()
+      label,
+      fullDate,
+      timestamp: isValidDate ? fallbackPointDate.getTime() : Date.now()
     });
   }
 

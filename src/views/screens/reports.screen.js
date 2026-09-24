@@ -67,14 +67,6 @@ const getDetailedDateString = (dateVal, timestampVal) => {
   if (!dateObj || isNaN(dateObj.getTime())) {
     dateObj = new Date(dateVal || timestampVal || Date.now());
   }
-  
-  if (timestampVal) {
-    const timeObj = new Date(timestampVal);
-    if (!isNaN(timeObj.getTime())) {
-      dateObj.setHours(timeObj.getHours());
-      dateObj.setMinutes(timeObj.getMinutes());
-    }
-  }
 
   if (!dateObj || Number.isNaN(dateObj.getTime())) return 'Tanggal tidak valid';
   
@@ -86,11 +78,7 @@ const getDetailedDateString = (dateVal, timestampVal) => {
     year: 'numeric'
   });
   
-  const hours = String(dateObj.getHours()).padStart(2, '0');
-  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-  
-  const timeStr = `${hours}:${minutes} WIB`;
-  return `${dayName}, ${formattedDate} - ${timeStr}`;
+  return `${dayName}, ${formattedDate}`;
 };
 
 const ReportsScreen = () => {

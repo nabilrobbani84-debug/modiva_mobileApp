@@ -181,6 +181,27 @@ export default function HomeScreen() {
     isStatusDone(r) && toLocalDateString(r.date || r.timestamp) === localTodayStr
   );
 
+  const allReportsData = store.getState()?.reports?.list || [];
+  let countToday = 0;
+  let countMonth = 0;
+  let countYear = 0;
+  const currDate = new Date();
+  const cMonth = currDate.getMonth();
+  const cYear = currDate.getFullYear();
+
+  allReportsData.forEach(r => {
+    if (isStatusDone(r)) {
+      const rDateStr = toLocalDateString(r.date || r.timestamp);
+      if (rDateStr === localTodayStr) countToday++;
+      
+      let dateObj = new Date(r.date || r.timestamp);
+      if (!isNaN(dateObj.getTime())) {
+        if (dateObj.getMonth() === cMonth && dateObj.getFullYear() === cYear) countMonth++;
+        if (dateObj.getFullYear() === cYear) countYear++;
+      }
+    }
+  });
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -316,81 +337,32 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </LinearGradient>
 
-        {/* Recent History */}
+        {/* Recent History Recap */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Riwayat Konsumsi Terbaru</Text>
+            <Text style={styles.cardTitle}>Ringkasan Riwayat Konsumsi</Text>
             <TouchableOpacity onPress={() => router.push('/laporan')}>
               <Text style={{ color: '#2563eb', fontSize: 14, fontWeight: '500' }}>Lihat Semua</Text>
             </TouchableOpacity>
           </View>
           
-          {reports.length === 0 ? (
-             <Text style={{color: '#9ca3af', fontStyle: 'italic', marginTop: 10}}>Belum ada riwayat.</Text>
-          ) : (
-              reports.map((item, index) => {
-                const isDone = isStatusDone(item);
-                return (
-                <View key={item.id || index} style={[styles.historyItem, index === reports.length - 1 && { borderBottomWidth: 0 }]}>
-                  <View>
-                    <Text style={styles.historyDate}>
-                        {(() => {
-                          let dateObj;
-                          if (item.date && typeof item.date === 'string') {
-                            const parts = item.date.split('-');
-                            if (parts.length === 3) {
-                              const year = parseInt(parts[0], 10);
-                              const month = parseInt(parts[1], 10) - 1;
-                              const day = parseInt(parts[2], 10);
-                              dateObj = new Date(year, month, day);
-                            }
-                          }
-                          
-                          if (!dateObj || isNaN(dateObj.getTime())) {
-                            dateObj = new Date(item.timestamp || Date.now());
-                          }
-                          
-                          const timeSource = item.timestamp || item.createdAt || item.created_at;
-                          if (timeSource) {
-                            const timeObj = new Date(timeSource);
-                            if (!isNaN(timeObj.getTime())) {
-                              dateObj.setHours(timeObj.getHours());
-                              dateObj.setMinutes(timeObj.getMinutes());
-                            }
-                          }
-
-                          if (isNaN(dateObj.getTime())) return 'Tanggal tidak valid';
-                          const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                          const dayName = days[dateObj.getDay()];
-                          const formattedDate = dateObj.toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          });
-                          const hours = String(dateObj.getHours()).padStart(2, '0');
-                          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-                          return `${dayName}, ${formattedDate} - ${hours}:${minutes} WIB`;
-                        })()}
-                    </Text>
-                    {/* Jika ada nilai HB di report, tampilkan. Jika tidak, hide atau tampilkan default */}
-                    {(item.hb || item.hbValue || item.hb_value) ? (
-                        <Text style={styles.historyHb}>Nilai HB: {item.hb || item.hbValue || item.hb_value} g/dL</Text>
-                    ) : (
-                        <Text style={styles.historyHb}>Konsumsi Vitamin</Text>
-                    )}
-                    {item.notes ? (
-                        <Text style={{ fontSize: 13, color: '#6b7280', marginTop: 4, fontStyle: 'italic' }}>Catatan: {item.notes}</Text>
-                    ) : null}
-                  </View>
-                  <View style={[styles.badge, { backgroundColor: isDone ? '#dcfce7' : '#fef9c3' }]}>
-                    <Text style={[styles.badgeText, { color: isDone ? '#16a34a' : '#854d0e' }]}>
-                        {isDone ? 'Sudah' : 'Belum'}
-                    </Text>
-                  </View>
-                </View>
-                );
-              })
-          )}
+          <View style={styles.recapContainer}>
+            <View style={styles.recapBox}>
+              <Text style={styles.recapLabel}>Hari Ini</Text>
+              <Text style={styles.recapValue}>{countToday}</Text>
+              <Text style={styles.recapSub}>kali</Text>
+            </View>
+            <View style={styles.recapBox}>
+              <Text style={styles.recapLabel}>Bulan Ini</Text>
+              <Text style={styles.recapValue}>{countMonth}</Text>
+              <Text style={styles.recapSub}>kali</Text>
+            </View>
+            <View style={styles.recapBox}>
+              <Text style={styles.recapLabel}>Tahun Ini</Text>
+              <Text style={styles.recapValue}>{countYear}</Text>
+              <Text style={styles.recapSub}>kali</Text>
+            </View>
+          </View>
         </View>
 
       </ScrollView>
@@ -585,19 +557,48 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   historyHb: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#6b7280',
+    marginTop: 4,
   },
   badge: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 12,
   },
   badgeText: {
-    color: '#16a34a',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  recapContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  recapBox: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  recapLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  recapValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2563eb',
+  },
+  recapSub: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginTop: 2,
   },
   envBadge: {
     position: 'absolute',

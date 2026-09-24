@@ -7,6 +7,10 @@ $envFile = Join-Path $projectRoot '.env'
 $envProductionFile = Join-Path $projectRoot '.env.production'
 $envBackupFile = Join-Path $projectRoot '.env.backup'
 
+if (-not $env:ANDROID_HOME -and (Test-Path "$env:LOCALAPPDATA\Android\Sdk")) {
+  $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+}
+
 Write-Host '[build-production-android] Validating production environment...'
 node (Join-Path $scriptDir 'validate-production-env.js')
 if ($LASTEXITCODE -ne 0) {
@@ -25,17 +29,15 @@ try {
   Write-Host '[build-production-android] Applying production environment configuration...'
   Copy-Item $envProductionFile $envFile -Force
 
+  Write-Host '[build-production-android] Cleaning stale CMake/CXX caches...'
+  Get-ChildItem -Path $projectRoot -Recurse -Directory -Filter ".cxx" -ErrorAction SilentlyContinue | ForEach-Object {
+    Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+  }
+
   Write-Host '[build-production-android] Building Android release APK...'
   Push-Location $androidDir
   try {
-    # Manual clean to avoid CMake autolinking issues during clean phase
-    Write-Host '[build-production-android] Cleaning build directories...'
-    $appBuildDir = Join-Path $androidDir 'app/build'
-    $appCxxDir = Join-Path $androidDir 'app/.cxx'
-    if (Test-Path $appBuildDir) { cmd.exe /c "rmdir /s /q `"$appBuildDir`"" }
-    if (Test-Path $appCxxDir) { cmd.exe /c "rmdir /s /q `"$appCxxDir`"" }
-
-    .\gradlew.bat assembleRelease
+    .\gradlew.bat assembleRelease --no-parallel
     if ($LASTEXITCODE -ne 0) {
       throw 'Android release build failed.'
     }
