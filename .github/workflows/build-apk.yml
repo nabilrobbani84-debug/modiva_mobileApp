@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -45,6 +47,14 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # Kosongkan agar action tidak mencoba install paket 'tools' yang sudah deprecated
+          # (menyebabkan "Failed to find package 'tools'"). Gradle akan mengunduh
+          # build-tools & platform yang dibutuhkan secara otomatis.
+          packages: ""
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null 2>&1 || true
 
       - name: Install npm dependencies
         run: npm ci || npm install
