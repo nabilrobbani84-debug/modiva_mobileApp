@@ -220,12 +220,26 @@ def build_app_hb_trends(user_id: str) -> list[dict[str, Any]]:
     for row in rows:
         year = int(row["year_label"])
         point_id = row.get("legacy_hb_id") or row["id"]
+        created_at = row.get("created_at")
+        if created_at and hasattr(created_at, "strftime"):
+            date_str = created_at.strftime("%Y-%m-%d")
+            ts = int(created_at.timestamp() * 1000)
+        elif created_at:
+            date_str = str(created_at)[:10]
+            try:
+                ts = int(datetime.fromisoformat(str(created_at)).timestamp() * 1000)
+            except Exception:
+                ts = int(datetime(year, 1, 1).timestamp() * 1000)
+        else:
+            date_str = f"{year}-01-01"
+            ts = int(datetime(year, 1, 1).timestamp() * 1000)
+
         trends.append(
             {
                 "id": f"hb-{point_id}",
                 "hb_value": float(row["hb_value"]),
-                "date": f"{year}-12-31",
-                "timestamp": int(datetime(year, 12, 31).timestamp() * 1000),
+                "date": date_str,
+                "timestamp": ts,
                 "notes": row.get("notes") or "",
             }
         )

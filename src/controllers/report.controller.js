@@ -24,22 +24,26 @@ const mergeReportsByRecency = (primaryReports = [], secondaryReports = [], userI
             return;
         }
 
-        const fallbackKey = `${normalized.date || 'no-date'}:${normalized.notes || ''}:${index}`;
-        const reportKey = String(normalized.id || fallbackKey);
+        const dateKey = normalized.date ? toLocalDateString(normalized.date) : '';
+        const fallbackKey = `report-idx-${index}-${dateKey || Date.now()}`;
+        const isLocalOrPrefixed = String(normalized.id || '').startsWith('report-');
+        const reportKey = isLocalOrPrefixed
+            ? String(normalized.id)
+            : (normalized.id && dateKey ? `${normalized.id}_${dateKey}` : String(normalized.id || fallbackKey));
         const existing = mergedMap.get(reportKey);
 
         if (!existing) {
             mergedMap.set(reportKey, normalized);
         } else {
-            const existingIsDone = existing.status === 'Selesai' || existing.status_konsumsi === 'sudah';
-            const newIsDone = normalized.status === 'Selesai' || normalized.status_konsumsi === 'sudah';
+            const existingIsDone = existing.status === 'Selesai' || existing.status_konsumsi === 'sudah' || existing.status === 'Terkirim';
+            const newIsDone = normalized.status === 'Selesai' || normalized.status_konsumsi === 'sudah' || normalized.status === 'Terkirim';
             
             if (existingIsDone && !newIsDone) {
                 // Keep the completed status and details
                 mergedMap.set(reportKey, {
                     ...normalized,
                     status: existing.status,
-                    status_konsumsi: existing.status_konsumsi,
+                    status_konsumsi: existing.status_konsumsi || 'sudah',
                     tanggal_konsumsi: normalized.tanggal_konsumsi || existing.tanggal_konsumsi,
                     bukti_foto: normalized.bukti_foto || existing.bukti_foto,
                     photo: normalized.photo || existing.photo,
@@ -131,7 +135,8 @@ export const ReportController = {
                 photoUrl: compressedImage?.uri || reportData.photo || null,
                 notes: normalizedNotes,
                 hbValue: userProfile?.hbLast || userProfile?.hb || null,
-                status: 'Terkirim',
+                status: 'Selesai',
+                status_konsumsi: 'sudah',
                 createdAt: submittedAt,
                 updatedAt: submittedAt,
                 timestamp: new Date(submittedAt).getTime()
@@ -139,8 +144,10 @@ export const ReportController = {
 
             store.dispatch(ActionTypes.REPORT_ADD, optimisticReport.toJSON());
             store.dispatch(ActionTypes.USER_INCREMENT_CONSUMPTION);
+            const currentProfileCount = Number(userProfile?.consumptionCount || userProfile?.consumption_count || 0);
             store.dispatch(ActionTypes.USER_UPDATE_PROFILE, {
-                consumptionCount: (userProfile?.consumptionCount || 0) + 1
+                consumptionCount: currentProfileCount + 1,
+                consumption_count: currentProfileCount + 1
             });
 
             const optimisticReports = normalizeReportsForCurrentUser(
@@ -151,7 +158,10 @@ export const ReportController = {
 
             // Create FormData
             const formData = new FormData();
-            const distribusiId = reportData.distribusiId || reportData.distribusi_id || reportData.id || "1";
+            const storeReports = store.getState()?.reports?.list || [];
+            const existingDistrib = storeReports.find(r => r.distribusiId || (r.id && !String(r.id).startsWith('report-local-') && !String(r.id).startsWith('report-')));
+            const fallbackDistribId = existingDistrib?.distribusiId || existingDistrib?.id || "1";
+            const distribusiId = reportData.distribusiId || reportData.distribusi_id || reportData.id || fallbackDistribId;
             formData.append('distribusi_id', String(distribusiId));
             formData.append('tanggal_konsumsi', normalizedDate);
             formData.append('created_at', submittedAt); // Save exact time of submission
@@ -183,7 +193,7 @@ export const ReportController = {
             try {
                 response = await ReportAPI.submit(formData);
             } catch (apiError) {
-                if (apiError?.status === 404 || apiError?.status === 401) {
+                if (apiError?.status === 401) {
                     throw apiError;
                 }
                 Logger.warn('⚠️ API submit gagal, menggunakan data lokal sebagai fallback:', apiError);
@@ -205,8 +215,12 @@ export const ReportController = {
                 Logger.success('✅ Report submitted successfully');
                 const responseData = response.data || response.report || {};
 
+                const uniqueReportId = (responseData.report_id && String(responseData.report_id) !== String(distribusiId))
+                    ? responseData.report_id
+                    : (responseData.id && String(responseData.id) !== String(distribusiId) ? responseData.id : `report-${distribusiId}-${normalizedDate}`);
+
                 const savedReport = new ReportModel({
-                    id: responseData.report_id || responseData.id || optimisticReportId,
+                    id: uniqueReportId,
                     userId,
                     date: normalizedDate,
                     photo: compressedImage?.uri || reportData.photo || responseData.photo_url || responseData.photoUrl || null,
@@ -214,6 +228,7 @@ export const ReportController = {
                     notes: normalizedNotes,
                     hbValue: store.getState()?.user?.profile?.hbLast || userProfile?.hbLast || null,
                     status: 'Selesai',
+                    status_konsumsi: 'sudah',
                     createdAt: submittedAt, // Gunakan waktu submit lokal agar jam 00:00 tidak terjadi
                     updatedAt: submittedAt,
                     timestamp: new Date(submittedAt).getTime()
@@ -293,9 +308,10 @@ export const ReportController = {
             const rollbackTarget = localReports.find((report) => String(report.id || '').startsWith('report-local-'));
             if (rollbackTarget) {
                 store.dispatch(ActionTypes.REPORT_DELETE, rollbackTarget.id);
-                const currentCount = Number(userProfile?.consumptionCount || 0);
+                const currentCount = Number(userProfile?.consumptionCount || userProfile?.consumption_count || 0);
                 store.dispatch(ActionTypes.USER_UPDATE_PROFILE, {
-                    consumptionCount: Math.max(0, currentCount - 1)
+                    consumptionCount: Math.max(0, currentCount - 1),
+                    consumption_count: Math.max(0, currentCount - 1)
                 });
                 localStorageService.setReportsCache(
                     normalizeReportsForCurrentUser(store.getState()?.reports?.list || [], userId)
@@ -410,21 +426,38 @@ export const ReportController = {
                 store.dispatch(ActionTypes.REPORT_SET_LIST, reports);
 
                 const rawTrends = response.data.hb_trends || reports;
-                const trendsWithUserId = (Array.isArray(rawTrends) ? rawTrends : []).map(item => ({
-                    ...item,
-                    userId: item.userId || item.user_id || userId
-                }));
+                const currentProfile = store.getState()?.user?.profile || {};
+                const currentHbProfile = currentProfile?.hbLast ?? currentProfile?.hb ?? null;
+
+                const trendsWithUserId = (Array.isArray(rawTrends) ? rawTrends : []).map((item, index) => {
+                    if (typeof item === 'number' || typeof item === 'string') {
+                        return {
+                            id: `hb-point-${index}`,
+                            hbValue: Number(item),
+                            hb_value: Number(item),
+                            userId
+                        };
+                    }
+                    return {
+                        ...item,
+                        userId: item?.userId || item?.user_id || userId
+                    };
+                });
+
+                const latestUserReport = reports[0];
+                const fallbackLatestDate = latestUserReport?.date || latestUserReport?.tanggal_konsumsi || currentProfile?.updatedAt || Date.now();
 
                 const hbTrendPoints = buildHemoglobinTrendPoints(
                     trendsWithUserId,
                     {
                         userId,
-                        fallbackValue: store.getState()?.user?.profile?.hbLast || null
+                        fallbackValue: currentHbProfile,
+                        fallbackDate: fallbackLatestDate
                     }
                 );
-                const latestHB = getLatestHemoglobinValue(hbTrendPoints, store.getState()?.user?.profile?.hbLast || null);
+                const latestHB = getLatestHemoglobinValue(hbTrendPoints, currentHbProfile);
 
-                if (latestHB != null) {
+                if (latestHB != null && currentHbProfile == null) {
                     store.dispatch(ActionTypes.USER_UPDATE_HB, latestHB);
                     store.dispatch(ActionTypes.USER_UPDATE_PROFILE, {
                         hbLast: latestHB,

@@ -12,6 +12,7 @@ import { store } from '../../state/store';
 import { SchoolAPI } from '../../services/api/school.api';
 import { buildHemoglobinTrendPoints, getLatestHemoglobinLabel, getLatestHemoglobinValue } from '../../utils/helpers/hemoglobinHelpers';
 import { localStorageService } from '../../services/storage/local.storage';
+import { toLocalDateString, parseLocalDate } from '../../utils/helpers/dateHelpers';
 
 export default function HomeScreen() {
   const matchesUserSchool = (school, profile) => {
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const [user, setUser] = useState(store.getState()?.user?.profile || {});
   // Ambil maksimal 5 report untuk di home agar terlihat rapih
   const [reports, setReports] = useState((store.getState()?.reports?.list || []).slice(0, 5));
+  const [allReports, setAllReports] = useState(store.getState()?.reports?.list || []);
   const [mySchool, setMySchool] = useState(null);
 
   // Refresh data when screen focuses
@@ -34,9 +36,10 @@ export default function HomeScreen() {
              setUser(state.user.profile);
           }
           if (state.reports && state.reports.list) {
-             // Urutkan terbaru -> terlama, tampilkan maksimal 5
-             const sortedReports = [...state.reports.list].sort((a,b) => b.timestamp - a.timestamp);
+             const list = Array.isArray(state.reports.list) ? state.reports.list : [];
+             const sortedReports = [...list].sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
              setReports(sortedReports.slice(0, 5));
+             setAllReports(sortedReports);
           }
       };
 
@@ -142,12 +145,29 @@ export default function HomeScreen() {
     }, [])
   );
 
-  // Helper values with defaults from user profile
-  const completedHistoryCount = (store.getState()?.reports?.list || []).filter(r => 
-    r.status_konsumsi === 'sudah' || r.status === 'Selesai' || r.status === 'Terkirim'
-  ).length;
-  // Total konsumsi disesuaikan HANYA dengan total riwayat yang valid
-  const consumptionCount = completedHistoryCount;
+  const allReportsData = allReports.length > 0 
+    ? allReports 
+    : (store.getState()?.reports?.list || []);
+
+  const isStatusDone = (r) => {
+    if (!r) return false;
+    const s = String(r.status || '').toLowerCase().trim();
+    const sk = String(r.status_konsumsi || '').toLowerCase().trim();
+    return (
+      sk === 'sudah' || 
+      s === 'selesai' || 
+      s === 'terkirim' || 
+      s === 'completed' || 
+      s === 'verified' || 
+      s === 'terverifikasi'
+    );
+  };
+
+  const completedReports = allReportsData.filter(isStatusDone);
+  const completedHistoryCount = completedReports.length;
+  const profileCount = Number(user.consumptionCount ?? user.consumption_count ?? 0);
+  // Total konsumsi disesuaikan dengan total riwayat valid atau profile count
+  const consumptionCount = Math.max(completedHistoryCount, profileCount);
   const totalTarget = Number(user.totalTarget ?? user.total_target ?? 0);
   const hbValue = user.hbLast ?? user.hb ?? null; // Support both naming conventions
   
@@ -155,33 +175,39 @@ export default function HomeScreen() {
   const cachedHBTrends = localStorageService.getHBTrendsCache(user.id || 'global');
   let hbTrendPoints = cachedHBTrends?.points;
   
-  if (!hbTrendPoints || hbTrendPoints.length === 0) {
-    hbTrendPoints = buildHemoglobinTrendPoints(reports, {
+  const latestCachedValue = hbTrendPoints && hbTrendPoints.length > 0 
+    ? hbTrendPoints[hbTrendPoints.length - 1].value 
+    : null;
+
+  const latestUserReport = completedReports[0] || allReportsData[0];
+  const userLatestDataDate = latestUserReport?.date || 
+    latestUserReport?.tanggal_konsumsi || 
+    latestUserReport?.waktu_minum || 
+    latestUserReport?.createdAt || 
+    latestUserReport?.created_at || 
+    user.updatedAt || 
+    user.updated_at;
+
+  if (!hbTrendPoints || hbTrendPoints.length === 0 || (hbValue != null && latestCachedValue != null && latestCachedValue !== Number(hbValue))) {
+    hbTrendPoints = buildHemoglobinTrendPoints(allReportsData, {
       userId: user.id,
       fallbackValue: hbValue,
-      fallbackDate: user.updatedAt || Date.now()
+      fallbackDate: userLatestDataDate || user.updatedAt || Date.now()
     });
   }
 
-  const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints);
-  const rawHBValue = getLatestHemoglobinValue(hbTrendPoints, hbValue);
+  const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints, userLatestDataDate);
+  const rawHBValue = hbValue != null ? hbValue : getLatestHemoglobinValue(hbTrendPoints, hbValue);
   const displayHBValue = (rawHBValue && rawHBValue !== 0) ? rawHBValue : '-';
 
-  // Cek Status Hari Ini
-  const { toLocalDateString } = require('../../utils/helpers/dateHelpers');
+  // Cek Status Hari Ini & Ringkasan Riwayat Konsumsi
   const localTodayStr = toLocalDateString(new Date());
-  
-  const isStatusDone = (r) => {
-    const s = String(r.status || '').toLowerCase();
-    const sk = String(r.status_konsumsi || '').toLowerCase();
-    return s === 'selesai' || sk === 'sudah' || s === 'terkirim';
-  };
 
-  const hasConsumedToday = (store.getState()?.reports?.list || []).some(r => 
-    isStatusDone(r) && toLocalDateString(r.date || r.timestamp) === localTodayStr
-  );
+  const hasConsumedToday = completedReports.some(r => {
+    const rawDate = r.date || r.tanggal_konsumsi || r.waktu_minum || r.createdAt || r.created_at || r.timestamp;
+    return toLocalDateString(rawDate) === localTodayStr;
+  });
 
-  const allReportsData = store.getState()?.reports?.list || [];
   let countToday = 0;
   let countMonth = 0;
   let countYear = 0;
@@ -189,18 +215,31 @@ export default function HomeScreen() {
   const cMonth = currDate.getMonth();
   const cYear = currDate.getFullYear();
 
-  allReportsData.forEach(r => {
-    if (isStatusDone(r)) {
-      const rDateStr = toLocalDateString(r.date || r.timestamp);
-      if (rDateStr === localTodayStr) countToday++;
-      
-      let dateObj = new Date(r.date || r.timestamp);
-      if (!isNaN(dateObj.getTime())) {
-        if (dateObj.getMonth() === cMonth && dateObj.getFullYear() === cYear) countMonth++;
-        if (dateObj.getFullYear() === cYear) countYear++;
+  completedReports.forEach(r => {
+    const rawDate = r.date || r.tanggal_konsumsi || r.waktu_minum || r.createdAt || r.created_at || r.timestamp;
+    const rDateStr = toLocalDateString(rawDate);
+    if (rDateStr === localTodayStr) {
+      countToday++;
+    }
+    
+    const dateObj = parseLocalDate(rawDate);
+    if (dateObj && !isNaN(dateObj.getTime())) {
+      if (dateObj.getMonth() === cMonth && dateObj.getFullYear() === cYear) {
+        countMonth++;
+      }
+      if (dateObj.getFullYear() === cYear) {
+        countYear++;
       }
     }
   });
+
+  if (countMonth > countYear) {
+    countYear = countMonth;
+  }
+  if (countToday > countMonth) {
+    countMonth = countToday;
+    countYear = Math.max(countYear, countMonth);
+  }
 
   return (
     <View style={styles.container}>
@@ -253,8 +292,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         )}
-
-
 
         {/* Quick Report Button */}
         <TouchableOpacity 

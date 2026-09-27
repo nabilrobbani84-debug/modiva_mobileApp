@@ -9,6 +9,7 @@ import { ReportAPI } from '../services/api/report.api.js';
 import { UserAPI } from '../services/api/user.api.js';
 import { localStorageService } from '../services/storage/local.storage.js';
 import { ActionTypes, store } from '../state/store.js';
+import { toLocalDateString } from '../utils/helpers/dateHelpers.js';
 import { buildHemoglobinTrendPoints, getLatestHemoglobinValue, normalizeReportsForCurrentUser } from '../utils/helpers/hemoglobinHelpers.js';
 import { Logger } from '../utils/logger.js';
 
@@ -21,8 +22,12 @@ const mergeReportsByRecency = (primaryReports = [], secondaryReports = [], userI
             return;
         }
 
-        const fallbackKey = `${normalized.date || 'no-date'}:${normalized.notes || ''}:${index}`;
-        const reportKey = String(normalized.id || fallbackKey);
+        const dateKey = normalized.date ? toLocalDateString(normalized.date) : '';
+        const fallbackKey = `report-idx-${index}-${dateKey || Date.now()}`;
+        const isLocalOrPrefixed = String(normalized.id || '').startsWith('report-');
+        const reportKey = isLocalOrPrefixed
+            ? String(normalized.id)
+            : (normalized.id && dateKey ? `${normalized.id}_${dateKey}` : String(normalized.id || fallbackKey));
         const existing = mergedMap.get(reportKey);
 
         if (!existing) {
@@ -55,17 +60,24 @@ const mergeReportsByRecency = (primaryReports = [], secondaryReports = [], userI
         .sort((left, right) => (right.timestamp || 0) - (left.timestamp || 0));
 };
 
-const mergeProfileWithLocalState = (incomingProfile = {}, currentProfile = {}) => ({
-    ...currentProfile,
-    ...incomingProfile,
-    consumptionCount: Math.max(
-        Number(currentProfile?.consumptionCount || currentProfile?.consumption_count || 0),
-        Number(incomingProfile?.consumptionCount || incomingProfile?.consumption_count || 0)
-    ),
-    hbLast: incomingProfile?.hbLast ?? incomingProfile?.hb_last ?? currentProfile?.hbLast ?? null,
-    totalTarget: incomingProfile?.totalTarget ?? incomingProfile?.total_target ?? currentProfile?.totalTarget ?? 0,
-    updatedAt: incomingProfile?.updatedAt || incomingProfile?.updated_at || currentProfile?.updatedAt || new Date().toISOString()
-});
+const mergeProfileWithLocalState = (incomingProfile = {}, currentProfile = {}) => {
+    const highestCount = Math.max(
+        Number(currentProfile?.consumptionCount || 0),
+        Number(currentProfile?.consumption_count || 0),
+        Number(incomingProfile?.consumptionCount || 0),
+        Number(incomingProfile?.consumption_count || 0)
+    );
+
+    return {
+        ...currentProfile,
+        ...incomingProfile,
+        consumptionCount: highestCount,
+        consumption_count: highestCount,
+        hbLast: incomingProfile?.hbLast ?? incomingProfile?.hb_last ?? currentProfile?.hbLast ?? null,
+        totalTarget: incomingProfile?.totalTarget ?? incomingProfile?.total_target ?? currentProfile?.totalTarget ?? 0,
+        updatedAt: incomingProfile?.updatedAt || incomingProfile?.updated_at || currentProfile?.updatedAt || new Date().toISOString()
+    };
+};
 
 /**
  * Dashboard Controller
@@ -205,17 +217,32 @@ export const DashboardController = {
         try {
             const userId = store.getState()?.user?.profile?.id || 'global';
             const currentProfile = store.getState()?.user?.profile || {};
-            const trendsWithUserId = (Array.isArray(trendsData) ? trendsData : []).map(item => ({
-                ...item,
-                userId: item.userId || item.user_id || userId
-            }));
+            const userHb = currentProfile?.hbLast ?? currentProfile?.hb ?? null;
+            const trendsWithUserId = (Array.isArray(trendsData) ? trendsData : []).map((item, index) => {
+                if (typeof item === 'number' || typeof item === 'string') {
+                    return {
+                        id: `hb-point-${index}`,
+                        hbValue: Number(item),
+                        hb_value: Number(item),
+                        userId
+                    };
+                }
+                return {
+                    ...item,
+                    userId: item?.userId || item?.user_id || userId
+                };
+            });
             
+            const storeReports = store.getState()?.reports?.list || [];
+            const latestUserReport = storeReports[0];
+            const fallbackLatestDate = latestUserReport?.date || latestUserReport?.tanggal_konsumsi || currentProfile?.updatedAt || Date.now();
+
             const trendPoints = buildHemoglobinTrendPoints(
                 trendsWithUserId,
                 {
                     userId,
-                    fallbackValue: currentProfile?.hbLast || currentProfile?.hb || null,
-                    fallbackDate: currentProfile?.updatedAt || Date.now()
+                    fallbackValue: userHb,
+                    fallbackDate: fallbackLatestDate
                 }
             );
 
@@ -223,9 +250,9 @@ export const DashboardController = {
                 return;
             }
 
-            const latestHB = getLatestHemoglobinValue(trendPoints);
+            const latestHB = getLatestHemoglobinValue(trendPoints, userHb);
 
-            if (latestHB != null) {
+            if (latestHB != null && userHb == null) {
                 store.dispatch(ActionTypes.USER_UPDATE_HB, latestHB);
                 store.dispatch(ActionTypes.USER_UPDATE_PROFILE, {
                     hbLast: latestHB,

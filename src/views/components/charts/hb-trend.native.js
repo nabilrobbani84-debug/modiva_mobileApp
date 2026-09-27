@@ -8,9 +8,15 @@ const PADDING_X = 18;
 const PADDING_TOP = 16;
 const PADDING_BOTTOM = 28;
 
-const buildPath = (points) => points.reduce((path, point, index) => (
-  `${path}${index === 0 ? 'M' : ' L'} ${point.x} ${point.y}`
-), '');
+const buildPath = (points) => {
+  if (!points || points.length === 0) return '';
+  if (points.length === 1) {
+    return `M ${PADDING_X} ${points[0].y} L ${CHART_WIDTH - PADDING_X} ${points[0].y}`;
+  }
+  return points.reduce((path, point, index) => (
+    `${path}${index === 0 ? 'M' : ' L'} ${point.x} ${point.y}`
+  ), '');
+};
 
 export default function HBTrendNativeChart({
   points = [],
@@ -28,9 +34,10 @@ export default function HBTrendNativeChart({
   const rawMin = Math.min(...values);
   const rawMax = Math.max(...values);
   const hasRange = rawMax > rawMin;
-  const minValue = hasRange ? rawMin : Math.max(0, rawMin - 2);
-  const maxValue = hasRange ? rawMax : rawMax + 2;
-  const valueRange = Math.max(maxValue - minValue, 1);
+  const padding = hasRange ? Math.max(1, (rawMax - rawMin) * 0.25) : 1.5;
+  const minValue = Math.max(0, Number((rawMin - padding).toFixed(1)));
+  const maxValue = Number((rawMax + padding).toFixed(1));
+  const valueRange = Math.max(maxValue - minValue, 0.5);
   const chartInnerWidth = CHART_WIDTH - (PADDING_X * 2);
   const chartInnerHeight = CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
   const stepX = points.length > 1 ? chartInnerWidth / (points.length - 1) : 0;
@@ -83,8 +90,9 @@ export default function HBTrendNativeChart({
         <Path
           d={pathData}
           fill="none"
-          stroke="#DC2626"
-          strokeWidth="3"
+          stroke={points.length === 1 ? '#F87171' : '#DC2626'}
+          strokeDasharray={points.length === 1 ? '4 4' : undefined}
+          strokeWidth={points.length === 1 ? '2' : '3'}
           strokeLinejoin="round"
           strokeLinecap="round"
         />
@@ -93,6 +101,18 @@ export default function HBTrendNativeChart({
           <React.Fragment key={point.id}>
             <Circle cx={point.x} cy={point.y} r="4.5" fill="#DC2626" />
             <Circle cx={point.x} cy={point.y} r="8" fill="rgba(220, 38, 38, 0.12)" />
+            {/* Tampilkan nilai HB di atas titik */}
+            <SvgText
+              x={point.x}
+              y={Math.max(12, point.y - 10)}
+              fontSize="10"
+              fontWeight="bold"
+              fill="#B91C1C"
+              textAnchor="middle"
+            >
+              {typeof point.value === 'number' ? point.value.toFixed(1) : point.value}
+            </SvgText>
+            {/* Tampilkan tanggal/tahun di bawah titik */}
             <SvgText
               x={point.x}
               y={CHART_HEIGHT - 8}

@@ -87,18 +87,23 @@ const ReportsScreen = () => {
     const state = store.getState();
     const currentUserId = state.user.profile?.id || null;
     const reportList = state.reports.list || [];
-    const cachedHBTrends = localStorageService.getHBTrendsCache(currentUserId);
+    const cachedHBTrends = localStorageService.getHBTrendsCache(currentUserId || 'global');
     let trendPoints = cachedHBTrends?.points;
+    const userHb = state.user.profile?.hbLast ?? state.user.profile?.hb ?? state.user.hemoglobin?.current ?? null;
     
-    if (!trendPoints || trendPoints.length === 0) {
+    const latestCachedVal = trendPoints && trendPoints.length > 0
+      ? trendPoints[trendPoints.length - 1].value
+      : null;
+
+    if (!trendPoints || trendPoints.length === 0 || (userHb != null && latestCachedVal != null && latestCachedVal !== Number(userHb))) {
       trendPoints = buildHemoglobinTrendPoints(reportList, {
         userId: currentUserId,
-        fallbackValue: state.user.hemoglobin?.current || state.user.profile?.hbLast || null,
+        fallbackValue: userHb,
         fallbackDate: state.user.profile?.updatedAt || Date.now()
       });
     }
 
-    const latestVal = getLatestHemoglobinValue(trendPoints, state.user.hemoglobin?.current || state.user.profile?.hbLast || null);
+    const latestVal = userHb != null ? userHb : getLatestHemoglobinValue(trendPoints, userHb);
 
     setUserInfo(state.user.profile || { name: 'Siswa', nisn: '-' });
     setActiveUserId(currentUserId);
@@ -181,14 +186,29 @@ const ReportsScreen = () => {
 
   const cachedHBTrends = localStorageService.getHBTrendsCache(userInfo.id || 'global');
   let hbTrendPoints = cachedHBTrends?.points;
+  const userHbValue = userInfo.hbLast ?? userInfo.hb ?? (currentHB === '-' ? null : currentHB);
 
-  if (!hbTrendPoints || hbTrendPoints.length === 0) {
+  const latestCachedValue = hbTrendPoints && hbTrendPoints.length > 0
+    ? hbTrendPoints[hbTrendPoints.length - 1].value
+    : null;
+
+  const latestUserReport = reports[0];
+  const userLatestDataDate = latestUserReport?.date ||
+    latestUserReport?.tanggal_konsumsi ||
+    latestUserReport?.waktu_minum ||
+    latestUserReport?.createdAt ||
+    latestUserReport?.created_at ||
+    userInfo.updatedAt ||
+    userInfo.updated_at;
+
+  if (!hbTrendPoints || hbTrendPoints.length === 0 || (userHbValue != null && latestCachedValue != null && latestCachedValue !== Number(userHbValue))) {
     hbTrendPoints = buildHemoglobinTrendPoints(reports, {
       userId: userInfo.id,
-      fallbackValue: currentHB === '-' ? null : currentHB
+      fallbackValue: userHbValue,
+      fallbackDate: userLatestDataDate || userInfo.updatedAt || Date.now()
     });
   }
-  const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints);
+  const latestHBLabel = getLatestHemoglobinLabel(hbTrendPoints, userLatestDataDate);
 
   // --- Logic Download Excel ---
   const handleDownloadExcel = async () => {

@@ -13,17 +13,23 @@ export class ReportModel {
     constructor(data = {}) {
         this.id = data.id || null;
         this.userId = data.userId || data.user_id || null;
-        this.date = data.date || null;
-        this.photo = data.photo || null;
-        this.photoUrl = data.photoUrl || data.photo_url || null;
-        this.notes = data.notes || '';
+        this.date = data.date || data.tanggal_konsumsi || null;
+        this.photo = data.photo || data.bukti_foto || null;
+        this.photoUrl = data.photoUrl || data.photo_url || data.bukti_foto || null;
+        this.notes = data.notes || data.keterangan || '';
         this.hbValue = data.hbValue || data.hb_value || null;
         this.status = data.status || ReportStatus.PENDING;
+        this.status_konsumsi = data.status_konsumsi || (
+            data.status === 'Selesai' || data.status === 'Terkirim' || data.status === ReportStatus.COMPLETED || data.status === ReportStatus.VERIFIED
+                ? 'sudah'
+                : 'belum'
+        );
         this.verifiedBy = data.verifiedBy || data.verified_by || null;
         this.verifiedAt = data.verifiedAt || data.verified_at || null;
         this.rejectionReason = data.rejectionReason || data.rejection_reason || null;
         this.createdAt = data.createdAt || data.created_at || null;
         this.updatedAt = data.updatedAt || data.updated_at || null;
+        this.timestamp = data.timestamp || (data.createdAt ? new Date(data.createdAt).getTime() : Date.now());
     }
     /**
      * Validate report data
@@ -204,11 +210,13 @@ export class ReportModel {
             id: this.id,
             userId: this.userId,
             date: this.date,
+            tanggal_konsumsi: this.date,
             photo: this.photo,
             photoUrl: this.photoUrl,
             notes: this.notes,
             hbValue: this.hbValue,
             status: this.status,
+            status_konsumsi: this.status_konsumsi,
             verifiedBy: this.verifiedBy,
             verifiedAt: this.verifiedAt,
             rejectionReason: this.rejectionReason,
@@ -226,6 +234,8 @@ export class ReportModel {
             id: this.id,
             user_id: this.userId,
             date: this.date,
+            tanggal_konsumsi: this.date,
+            status_konsumsi: this.status_konsumsi,
             photo: this.photo,
             photo_url: this.photoUrl,
             notes: this.notes,

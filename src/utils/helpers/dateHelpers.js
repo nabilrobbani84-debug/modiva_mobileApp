@@ -67,18 +67,29 @@ export const formatISODate = (date) => {
  * @returns {Date}
  */
 export const parseLocalDate = (date) => {
+  if (!date) return new Date(NaN);
   if (date instanceof Date) {
     return new Date(date.getTime());
   }
 
-  if (typeof date === 'string') {
-    const normalized = date.trim();
-    const dateOnlyMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (typeof date === 'number') {
+    return new Date(date);
+  }
 
-    if (dateOnlyMatch) {
-      const [, year, month, day] = dateOnlyMatch;
+  if (typeof date === 'string') {
+    let normalized = date.trim();
+    const datePrefixMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (datePrefixMatch) {
+      const [, year, month, day] = datePrefixMatch;
       return new Date(Number(year), Number(month) - 1, Number(day));
     }
+
+    if (normalized.includes(' ') && !normalized.includes('T')) {
+      normalized = normalized.replace(' ', 'T');
+    }
+    const parsed = new Date(normalized);
+    if (!isNaN(parsed.getTime())) return parsed;
   }
 
   return new Date(date);

@@ -115,11 +115,19 @@ export const UserState = {
      * @returns {object} - New state
      */
     incrementConsumption(state) {
-        const newCount = state.vitaminConsumption.count + 1;
-        const target = state.vitaminConsumption.target;
-        const percentage = Math.round((newCount / target) * 100);
+        const newCount = (state.vitaminConsumption?.count || 0) + 1;
+        const target = state.vitaminConsumption?.target || 90;
+        const percentage = target > 0 ? Math.round((newCount / target) * 100) : 0;
+        const currentProfileCount = Number(state.profile?.consumptionCount || state.profile?.consumption_count || 0);
+        const newProfileCount = currentProfileCount + 1;
         return {
             ...state,
+            profile: {
+                ...state.profile,
+                consumptionCount: newProfileCount,
+                consumption_count: newProfileCount,
+                updatedAt: Date.now()
+            },
             vitaminConsumption: {
                 ...state.vitaminConsumption,
                 count: newCount,
@@ -198,7 +206,8 @@ export const UserState = {
     setError(state, payload) {
         return {
             ...state,
-            error: payload
+            error: payload,
+            loading: false
         };
     },
     /**

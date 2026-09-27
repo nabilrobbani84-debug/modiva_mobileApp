@@ -88,6 +88,7 @@ android {
     compileSdk 35
 
     namespace 'com.modiva.mobile'
+    def reactArchitectures = (findProperty("reactNativeArchitectures") ?: "arm64-v8a").split(",")
     defaultConfig {
         applicationId 'com.modiva.mobile'
         minSdkVersion 24
@@ -97,13 +98,13 @@ android {
         setProperty("archivesBaseName", "Modiva")
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        ndk {
+            abiFilters (*reactArchitectures)
+        }
     }
     splits {
         abi {
-            enable true
-            reset()
-            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-            universalApk true
+            enable false
         }
     }
 

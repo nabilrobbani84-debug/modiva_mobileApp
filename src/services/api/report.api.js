@@ -115,11 +115,13 @@ const MockReportAPI = {
 
         const userProfile = store.getState()?.user?.profile || {};
         const currentUser = getMockStudentByUserId(userProfile?.id);
+        const userHb = userProfile.hbLast ?? userProfile.hb ?? currentUser?.hb_last ?? 12.0;
         const reports = getMockReportsForUser(userProfile).map((report) => ({
             id: report.id,
             userId: report.userId,
             date: report.date,
-            hb_value: report.hbValue ?? report.hb_value ?? currentUser?.hb_last ?? 12.0,
+            hb_value: report.hbValue ?? report.hb_value ?? userHb,
+            hbValue: report.hbValue ?? report.hb_value ?? userHb,
             status: report.status || 'Selesai',
             photo: report.photo || null,
             photoUrl: report.photoUrl || report.photo_url || null,
@@ -132,8 +134,15 @@ const MockReportAPI = {
         const hbTrends = reports
             .slice()
             .reverse()
-            .map((report) => Number(report.hb_value || 0))
-            .filter((value) => value > 0);
+            .map((report) => ({
+                id: `hb-${report.id}`,
+                userId: report.userId,
+                date: report.date,
+                timestamp: report.timestamp,
+                hb_value: Number(report.hb_value ?? report.hbValue ?? userHb),
+                hbValue: Number(report.hb_value ?? report.hbValue ?? userHb)
+            }))
+            .filter((item) => item.hbValue > 0);
         const totalCount = reports.length;
         const target = Number(userProfile?.totalTarget || currentUser?.total_target || 90) || 90;
         const consumptionRate = target > 0
@@ -179,7 +188,7 @@ export const ReportAPI = {
                 success: response?.success !== false,
                 message: response?.message,
                 data: {
-                    report_id: response?.id || response?.report_id || reportData?.distribusiId || reportData?.distribusi_id,
+                    report_id: response?.id || response?.report_id || (reportData?.distribusiId ? `report-${reportData.distribusiId}-${reportData.tanggal_konsumsi || Date.now()}` : `report-${Date.now()}`),
                     date: reportData?.tanggal_konsumsi || reportData?.date,
                     timestamp: new Date().toISOString(),
                     photo_url: response?.file || response?.photo_url || null
@@ -218,7 +227,8 @@ export const ReportAPI = {
             const hbTrends = (Array.isArray(hbResponse?.data) ? hbResponse.data : [])
                 .map((item, index) => ({
                     id: `hb-${item.id || item.tahun || index}`,
-                    date: item.tahun ? `${item.tahun}-12-31` : null,
+                    tahun: item.tahun || null,
+                    date: item.date || item.tanggal || item.created_at || (item.tahun ? String(item.tahun) : null),
                     hb_value: item.hb,
                     hbValue: item.hb,
                     notes: item.keterangan || ''

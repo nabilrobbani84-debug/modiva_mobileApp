@@ -176,6 +176,8 @@ export default function ReportFormScreen() {
         (r.status_konsumsi === 'belum' || r.status === 'Belum' || r.status_konsumsi === 'Belum')
       ) || reportsList.find(r => 
         (r.status_konsumsi === 'belum' || r.status === 'Belum' || r.status_konsumsi === 'Belum')
+      ) || reportsList.find(r => 
+        r.distribusiId || (r.id && !String(r.id).startsWith('report-local-') && !String(r.id).startsWith('report-'))
       );
 
       const distribId = matchingReport?.distribusiId || matchingReport?.id || null;
